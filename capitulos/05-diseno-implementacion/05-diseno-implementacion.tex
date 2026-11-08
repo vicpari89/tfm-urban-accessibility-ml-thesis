@@ -319,7 +319,146 @@ Las hipótesis H6 y H7 no se contrastan con la matriz de experimentos, por lo qu
 \section{Hiperparametrización}
 \label{sec:dis-hiperparametrizacion}
 
-Nota: pendiente de realizar.
+Un \textbf{hiperparámetro} es un valor que se decide \emph{antes} de entrenar y que el modelo no aprende de los datos, como por ejemplo la profundidad máxima de los árboles. \textbf{Ajustar} es elegir esos valores probando varias combinaciones y quedarse con la que mejor funciona con datos distintos de los de entrenamiento. Si se puntuara cada combinación con los mismos datos con los que se entrenó, ganaría la que más memoriza y no la que mejor generaliza.
+\\
+
+Por ello, el orden es el siguiente, y el conjunto de test de una partición \textbf{nunca se utiliza para elegir hiperparámetros}:
+
+\begin{enumerate}
+  \item \textbf{Ajustar:} se prueban las combinaciones solo con los tramos de entrenamiento de la partición, divididos en pliegues internos (subsección~\ref{subsec:dis-validacion-interna}).
+  \item \textbf{Entrenar:} con la combinación ganadora, se entrena el modelo final con todos los tramos de entrenamiento.
+  \item \textbf{Evaluar:} se puntúa ese modelo una sola vez con el test.
+\end{enumerate}
+
+El ajuste se realiza de forma independiente en cada una de las 17 particiones (tabla~\ref{tab:matriz-experimentos}).
+\\
+
+Se ajustan los cuatro modelos que se han elegido para el trabajo: regresión logística, \textit{random forest}, XGBoost y LightGBM.
+\\
+
+\subsection{Espacios de búsqueda}
+\label{subsec:dis-espacios-busqueda}
+
+Para la regresión logística se prueban todas las combinaciones en rejilla (\texttt{GridSearchCV} de scikit-learn), ya que tiene pocos valores posibles. Para los modelos de árboles hay demasiadas combinaciones, por lo que se utiliza una búsqueda aleatoria (\texttt{RandomizedSearchCV}) con 30 candidatas por partición, tomadas al azar del espacio de la tabla~\ref{tab:espacios-busqueda}.
+\\
+
+Se han elegido los rangos intentando evitar que el modelo sea demasiado complejo. Por ejemplo, el tamaño mínimo de las hojas tiene un tope bajo para que hojas muy grandes no impidan predecir la clase A, que tiene muy pocos tramos.
+\\
+
+En la regresión logística, \texttt{C} controla cuánto se deja libre al modelo (con un valor pequeño es más simple, y con uno grande se ajusta más a los datos de entrenamiento), y \texttt{penalty} cómo se frena: \texttt{l2} reduce todos los pesos y \texttt{l1} lleva algunos a cero, es decir, descarta variables. El \texttt{solver} es el algoritmo que calcula los pesos y debe ser compatible con el \texttt{penalty} (\textit{lbfgs} va con l2 y \textit{saga} con l1).
+\\
+
+En los modelos de árboles, \texttt{max\_depth} es la profundidad máxima de cada árbol, \texttt{min\_samples\_leaf} (\textit{random forest}) y \texttt{min\_child\_samples} (LightGBM) son el mínimo de tramos de cada hoja, y \texttt{max\_features} es el número de variables que se consideran en cada división.
+\\
+
+\begin{table}[H]
+  \centering
+  \caption{Hiperparámetros ajustados y valores que se prueban.}
+  \label{tab:espacios-busqueda}
+  \small
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.2\textwidth} >{\raggedright\arraybackslash}p{0.25\textwidth} >{\raggedright\arraybackslash}X}
+    \toprule
+    \cabeceratabla Modelo & Hiperparámetro & Valores \\
+    \midrule
+    Regresión logística (GridSearch) & \texttt{C} & $10^{-3}$, $10^{-2}$, $10^{-1}$, 1, 10, 100, $10^{3}$ y $10^{4}$ \\
+     & \texttt{penalty} y \texttt{solver} & \texttt{l2} con \texttt{lbfgs}, y \texttt{l1} con \texttt{saga} \\
+    \arrayrulecolor{black!25}\cmidrule(lr){1-3}\arrayrulecolor{black}
+    \textit{Random forest} (30 candidatas) & \texttt{max\_depth} & Entero entre 3 y 15 \\
+     & \texttt{min\_samples\_leaf} & Entero entre 1 y 10 \\
+     & \texttt{max\_features} & Decimal entre 0,3 y 1 \\
+    \arrayrulecolor{black!25}\cmidrule(lr){1-3}\arrayrulecolor{black}
+    LightGBM (30 candidatas) & \texttt{learning\_rate} & Decimal entre 0,01 y 0,3 (escala logarítmica) \\
+     & \texttt{num\_leaves} & Entero entre 7 y 63 \\
+     & \texttt{n\_estimators} & Entero entre 100 y 500 \\
+     & \texttt{min\_child\_samples} & Entero entre 5 y 20 \\
+     & \texttt{subsample} y \texttt{colsample\_bytree} & Decimal entre 0,6 y 1 \\
+    \arrayrulecolor{black!25}\cmidrule(lr){1-3}\arrayrulecolor{black}
+    XGBoost (30 candidatas) & \texttt{learning\_rate} & Decimal entre 0,01 y 0,3 (escala logarítmica) \\
+     & \texttt{max\_depth} & Entero entre 2 y 6 \\
+     & \texttt{n\_estimators} & Entero entre 100 y 500 \\
+     & \texttt{min\_child\_weight} & Entero entre 1 y 10 \\
+     & \texttt{subsample} y \texttt{colsample\_bytree} & Decimal entre 0,6 y 1 \\
+    \bottomrule
+  \end{tabularx}
+  \fuente{Elaboración propia.}
+\end{table}
+
+En los dos de \textit{gradient boosting}, \texttt{n\_estimators} es el número de árboles, \texttt{learning\_rate} cuánto corrige cada árbol a los anteriores, y \texttt{subsample} y \texttt{colsample\_bytree} la fracción de tramos y de variables que utiliza cada árbol. Por último, \texttt{num\_leaves} es el máximo de hojas por árbol en LightGBM, y \texttt{min\_child\_weight} el peso mínimo que debe sumar una hoja en XGBoost, que cuenta más los tramos de clase A.
+\\
+
+No se ajustan \texttt{class\_\allowbreak weight=\allowbreak "balanced"}, que se calcula a partir de los datos de las clases, ni \texttt{max\_iter=1000} en la regresión logística ni \texttt{n\_estimators=300} en el \textit{random forest}.
+\\
+
+\subsection{Validación interna y desempate}
+\label{subsec:dis-validacion-interna}
+
+Se ha utilizado validación cruzada anidadda, para puntuar cada candidata, en la que los tramos de entrenamiento de cada partición se dividen internamente en 3 pliegues utilizando \texttt{StratifiedGroupKFold}, igual que en la división de los datos (sección~\ref{sec:dis-division}). Se utilizan las mismas condiciones, una calle siempre queda en el mismo pliegue y el reparto de clases es similar.
+\\
+
+Cada candidata se entrena con dos de los pliegues y se puntúa con el tercero, con F1 macro, que no se ha utilizado en ese entrenamiento. Esto se repite hasta que cada pliegue ha sido el de validación una vez (tres entrenamientos en total), y la nota de la candidata es la media de las tres F1 macro. Todas las candidatas de un modelo se prueban sobre los mismos pliegues.
+\\
+
+Se elige la candidata de mayor nota. Sin embargo, si otras candidatas están a menos de 0,005 de la mejor, se consideran empatadas y gana la más simple, porque una diferencia tan pequeña puede deberse al ruido. El algoritmo de desempate es diferente en cada modelo:
+
+\begin{itemize}
+  \item Regresión logística: menor \texttt{C} y, con el mismo \texttt{C}, \texttt{l1}.
+  \item \textit{Random forest}: menor profundidad, después hojas más grandes y después menos variables por división.
+  \item LightGBM: menos hojas, después menos árboles y después hojas más grandes.
+  \item XGBoost: menor profundidad, después menos árboles y después mayor \texttt{min\_child\_weight}.
+\end{itemize}
+
+Se ha comprobado que se ha utilizado el criterio de desempate en algunos casos, concretamente en 37 de los 68 ajustes (17 particiones y 4 modelos) la candidata elegida no es la de mayor nota.
+\\
+
+El ajuste se realiza solo con el conjunto de variables completo y el perfil global, y los valores elegidos se reutilizan en todos los conjuntos de variables y perfiles de esa partición. La razón es reducir el coste de cálculo, aunque los valores no estén optimizados para cada conjunto. Hay que tener en cuenta que la nota de la validación interna es la mejor de entre muchas candidatas, por lo que es algo optimista. Por esa razón solo sirve para comparar candidatas de un mismo modelo y partición, y no para comparar unos modelos con otros, que se hace con el conjunto de test en la matriz de experimentos.
+\\
+
+\subsection{Resultados del ajuste}
+\label{subsec:dis-resultados-ajuste}
+
+En total se han evaluado \textbf{1802 candidatas}: 272 de la regresión logística y 510 de cada modelo de árboles. Como cada partición se ajusta de manera independiente, los valores elegidos \textbf{varían de una partición a otra}. Por ejemplo, la regresión logística elige \texttt{l1} con \texttt{saga} en 9 de las 17 particiones y \texttt{l2} con \texttt{lbfgs} en las otras 8, con un \texttt{C} que va de 10 a 10\,000. Aun así, algunos valores se repiten bastante: en las particiones de Albacete, el \textit{random forest} elige siempre árboles de profundidad 6 o 7, mientras que en las de Algeciras y en las mezcladas suele elegir profundidad 15.
+\\
+
+Para saber si el ajuste modifica los resultados, se ha repetido la matriz de experimentos con los hiperparámetros obtenidos y se ha comparado con la de los valores por defecto (tabla~\ref{tab:defecto-ajustado}). Se compara la \textbf{F1 macro en test}, calculando para cada estrategia y modelo la media de todos los conjuntos de variables, perfiles y pliegues.
+\\
+
+\begin{table}[htbp]
+  \centering
+  \caption{F1 macro media en test, con los hiperparámetros por defecto y ajustados.}
+  \label{tab:defecto-ajustado}
+  \small
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X >{\centering\arraybackslash}p{0.12\textwidth} >{\centering\arraybackslash}p{0.12\textwidth} >{\centering\arraybackslash}p{0.12\textwidth}}
+    \toprule
+    \cabeceratabla Estrategia y modelo & Por defecto & Ajustado & Diferencia \\
+    \midrule
+    Dentro de cada ciudad & & & \\
+    \quad Regresión logística & 0,754 & 0,838 & +0,084 \\
+    \quad \textit{Random forest} & 0,891 & 0,881 & $-$0,010 \\
+    \quad XGBoost & 0,888 & 0,867 & $-$0,021 \\
+    \quad LightGBM & 0,890 & 0,885 & $-$0,006 \\
+    \arrayrulecolor{black!25}\cmidrule(lr){1-4}\arrayrulecolor{black}
+    Mezclada & & & \\
+    \quad Regresión logística & 0,747 & 0,809 & +0,062 \\
+    \quad \textit{Random forest} & 0,879 & 0,877 & $-$0,002 \\
+    \quad XGBoost & 0,873 & 0,868 & $-$0,005 \\
+    \quad LightGBM & 0,876 & 0,877 & +0,001 \\
+    \arrayrulecolor{black!25}\cmidrule(lr){1-4}\arrayrulecolor{black}
+    Entre ciudades & & & \\
+    \quad Regresión logística & 0,703 & 0,705 & +0,002 \\
+    \quad \textit{Random forest} & 0,652 & 0,654 & +0,003 \\
+    \quad XGBoost & 0,446 & 0,444 & $-$0,002 \\
+    \quad LightGBM & 0,580 & 0,572 & $-$0,008 \\
+    \bottomrule
+  \end{tabularx}
+  \fuente{Elaboración propia.}
+\end{table}
+
+La \textbf{regresión logística} es la que más mejora, sobre todo dentro de cada ciudad (pasa de 0,754 a 0,838) y en la partición mezclada (de 0,747 a 0,809), mientras que entre ciudades casi no cambia. En cambio, en los \textbf{modelos de árboles} no se aprecian mejoras y, en algunos casos, empeoran un poco; la mayor caída es la de XGBoost dentro de cada ciudad (de 0,888 a 0,867). Esto indica que los valores por defecto de los árboles ya funcionaban bien con estos datos, y que tras el ajuste no se aporta una mejora clara.
+\\
+
+\sintesisdecision{
+  \item \sintesisclave{Hiperparametrización} rejilla (GridSearch) para la regresión logística y búsqueda aleatoria de 30 candidatas para los modelos de árboles, con validación cruzada interna de 3 pliegues agrupados por calle y solo con los datos de entrenamiento de cada partición. En caso de empate (diferencia menor de 0,005 de F1 macro) se elige la candidata más simple.
+  \item \sintesisclave{Efecto} el ajuste mejora la regresión logística, pero apenas modifica el resultado de los modelos de árboles.}
 
 \section{Implementación y reproducibilidad}
 \label{sec:dis-implementacion}
