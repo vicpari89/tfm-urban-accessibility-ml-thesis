@@ -231,7 +231,7 @@ En este bloque se presentan los modelos y la matriz de experimentos con la que s
 \subsection{Modelos de referencia}
 \label{subsec:dis-modelos-referencia}
 
-Se usan dos \glslink{modelo-referencia}{modelos de referencia}. El modelo \textbf{\textit{dummy}} (\texttt{DummyClassifier} de scikit-learn, con \texttt{strategy=\allowbreak "most\_\allowbreak frequent"}), que predice siempre la clase más frecuente ignorando las variables de entrada, por lo que es el modelo mínimo: cualquier otro modelo debería mejorarlo.
+Se usan dos \glslink{modelo-referencia}{modelos de referencia}. El \textbf{modelo \textit{dummy}} (\texttt{DummyClassifier} de scikit-learn, con \texttt{strategy=\allowbreak "most\_\allowbreak frequent"}), que predice siempre la clase más frecuente ignorando las variables de entrada, por lo que es el modelo mínimo: cualquier otro modelo debería mejorarlo.
 \\
 
 Por otro lado, se usa la \textbf{\glslink{regresion-logistica}{regresión logística}} (\texttt{LogisticRegression} de scikit-learn, con \mbox{\texttt{max\_iter=1000}}). Con \texttt{class\_\allowbreak weight=\allowbreak "balanced"} se asigna a cada clase un peso inversamente proporcional a su frecuencia, de esta manera los errores en clases minoritarias penalizan más durante el entrenamiento. Es la referencia seleccionada por el autor como base.
@@ -431,7 +431,7 @@ No se ajustan \texttt{class\_\allowbreak weight=\allowbreak "balanced"}, que se 
 \subsection{Validación interna y desempate}
 \label{subsec:dis-validacion-interna}
 
-Se ha utilizado \textbf{\gls{validacion-cruzada-anidada}} \parencite{kudasova_nested_cv} para puntuar cada candidata, es decir, una validación interna dentro de cada partición de entrenamiento, en la que los tramos se dividen internamente en 3 pliegues utilizando \texttt{StratifiedGroupKFold}, igual que en la división de los datos (subsección~\ref{subsec:dis-division}). Se utilizan las mismas condiciones: una calle siempre queda en el mismo pliegue y el reparto de clases es similar.
+Se ha utilizado \textbf{\gls{validacion-cruzada-anidada}} \parencite{kudasova_nested_cv} para puntuar cada candidata, es decir, una \textbf{validación interna} dentro de cada partición de entrenamiento, en la que los tramos se dividen internamente en 3 pliegues utilizando \texttt{StratifiedGroupKFold}, igual que en la división de los datos (subsección~\ref{subsec:dis-division}). Se utilizan las mismas condiciones: una calle siempre queda en el mismo pliegue y el reparto de clases es similar.
 \\
 
 Cada candidata se entrena con 2 de los pliegues y se puntúa con el tercero, que no se ha utilizado en ese entrenamiento, usando la F1 macro. Esto se repite hasta que cada pliegue ha sido el de validación una vez (3 entrenamientos en total), y la nota de la candidata es la media de las F1 macro. Todas las candidatas de un modelo se prueban sobre los mismos pliegues.
