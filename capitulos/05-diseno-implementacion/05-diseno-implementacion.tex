@@ -398,7 +398,7 @@ No se ajustan \texttt{class\_\allowbreak weight=\allowbreak "balanced"}, que se 
 \subsection{Validación interna y desempate}
 \label{subsec:dis-validacion-interna}
 
-Se ha utilizado \gls{validacion-cruzada-anidada}, para puntuar cada candidata, en la que los tramos de entrenamiento de cada partición se dividen internamente en 3 pliegues utilizando \texttt{StratifiedGroupKFold}, igual que en la división de los datos (sección~\ref{sec:dis-division}). Se utilizan las mismas condiciones: una calle siempre queda en el mismo pliegue y el reparto de clases es similar.
+Se ha utilizado \gls{validacion-cruzada-anidada} \parencite{kudasova_nested_cv} para puntuar cada candidata, es decir, una validación interna dentro de cada partición de entrenamiento, en la que los tramos de entrenamiento de cada partición se dividen internamente en 3 pliegues utilizando \texttt{StratifiedGroupKFold}, igual que en la división de los datos (sección~\ref{sec:dis-division}). Se utilizan las mismas condiciones: una calle siempre queda en el mismo pliegue y el reparto de clases es similar.
 \\
 
 Cada candidata se entrena con 2 de los pliegues y se puntúa con el tercero, que no se ha utilizado en ese entrenamiento, usando la F1 macro. Esto se repite hasta que cada pliegue ha sido el de validación una vez (3 entrenamientos en total), y la nota de la candidata es la media de las F1 macro. Todas las candidatas de un modelo se prueban sobre los mismos pliegues.
@@ -474,7 +474,7 @@ Como el ajuste solo ha usado los datos de entrenamiento de cada partición, el t
 La \textbf{regresión logística} es la que más mejora, sobre todo dentro de cada ciudad (pasa de 0,754 a 0,831) y en la partición mezclada (de 0,747 a 0,812), mientras que entre ciudades casi no cambia.
 \\
 
-En cambio, en los \textbf{modelos de árboles} no se aprecian mejoras y, en algunos casos, empeoran un poco; la mayor caída es la de XGBoost entre ciudades (de 0,446 a 0,429). Esto indica que los valores por defecto de los árboles ya funcionaban bien con estos datos, y que ajustarlos no aporta una mejora clara.
+En cambio, en los \textbf{modelos de árboles} no se aprecian mejoras y, en algunos casos, empeoran un poco; la mayor caída es la de XGBoost entre ciudades (de 0,446 a 0,429). Una posible explicación es que los valores por defecto de los árboles ya funcionaban bien con estos datos, pero no es la única, y la subsección~\ref{subsec:dis-robustez-ajuste} la contrasta.
 \\
 
 También se ha comparado la diferencia por conjunto de variables (tabla~\ref{tab:defecto-ajustado-conjuntos}), con la media de todas las estrategias, perfiles y pliegues. La mejora de la regresión logística depende del conjunto, ya que es grande en el completo (+0,115), menor en calle y combinado (+0,062) y muy pequeña en el cartográfico y aéreo (+0,019). En los árboles las diferencias son pequeñas, y la mayor caída es la de XGBoost en el cartográfico y aéreo ($-$0,027).
@@ -507,9 +507,66 @@ En la regresión logística con el conjunto completo, la mejora se mantiene en l
 En los modelos de árboles no hay mejoras apreciables en ninguna de las tres métricas. La mayor subida es de +0,004, y la mayor caída es la de XGBoost en el cartográfico y aéreo ($-$0,027 en F1 macro y $-$0,038 en kappa).
 \\
 
+\subsection{Robustez del ajuste en los modelos de árboles}
+\label{subsec:dis-robustez-ajuste}
+
+En los modelos de árboles el ajuste no ha mejorado los valores por defecto, y se han encontrado dos explicaciones posibles:
+\begin{itemize}
+  \item \textbf{La búsqueda se queda corta:} solo se han probado 30 candidatas al azar y puede que ninguna fuera buena.
+  \item \textbf{La validación interna es ruidosa:} la clase A tiene muy pocos tramos (24 en Albacete y 28 en Algeciras), así que cada pliegue interno tiene muy pocos y la F1 macro varía mucho de un pliegue a otro. La candidata ganadora puede ser la que mejor ha salido por casualidad.
+\end{itemize}
+
+Para comprobarlo se ha repetido el ajuste de hiperparámetros de los árboles de dos maneras, y se ha comparado con el ajuste principal (\textbf{A}):
+\begin{itemize}
+  \item \textbf{B:} cambia la semilla, y con ella los pliegues internos y las candidatas. En caso de que el resultado cambie mucho, apuntaría a la validación ruidosa.
+  \item \textbf{C:} se prueban 100 candidatas en lugar de 30. En caso de que el test no mejore, probar pocas candidatas no era el problema.
+\end{itemize}
+
+La regresión logística no se repite, porque su rejilla siempre prueba las mismas combinaciones.
+\\
+
+La tabla~\ref{tab:robustez-ajuste} muestra la F1 macro media en test de cada variante, que es la media de todas las estrategias, conjuntos de variables, perfiles y pliegues.
+\\
+
+\begin{table}[htbp]
+  \centering
+  \caption{F1 macro media en test de los modelos de árboles con los valores por defecto y con las variantes de ajuste A, B y C.}
+  \label{tab:robustez-ajuste}
+  \small
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X >{\centering\arraybackslash}p{0.12\textwidth} >{\centering\arraybackslash}p{0.12\textwidth} >{\centering\arraybackslash}p{0.12\textwidth} >{\centering\arraybackslash}p{0.12\textwidth}}
+    \toprule
+    \cabeceratabla Modelo & Por defecto & A & B & C \\
+    \midrule
+    \textit{Random forest} & 0,8595 & 0,8526 & 0,8563 & 0,8478 \\
+    LightGBM & 0,8496 & 0,8470 & 0,8495 & 0,8430 \\
+    XGBoost & 0,8314 & 0,8219 & 0,8257 & 0,8248 \\
+    \bottomrule
+  \end{tabularx}
+  \fuente{Elaboración propia.}
+\end{table}
+
+El test solo se utiliza para comprobar si el ajuste ayuda, pero no para elegir hiperparámetros ni qué variante se usa. El ajuste principal (A) se mantiene fijado de antemano.
+\\
+
+Ninguna variante supera a los valores por defecto. Con 100 candidatas (C) el test no mejora, así que la búsqueda no parece quedarse corta con las 30 iniciales.
+\\
+
+Al cambiar solo la semilla (B), la diferencia absoluta media de F1 macro con A es de entre 0,008 y 0,010 en cada experimento. Es una diferencia similar a la que hay entre el ajuste A y los valores por defecto, que está entre 0,007 y 0,016.
+\\
+
+También se ha comparado la F1 macro interna de la candidata elegida con la del conjunto de test. Entre A y B la interna casi no cambia (en LightGBM es 0,897 en las dos), aunque la del test sí. Con 100 candidatas (C) la interna sube a 0,904 y la del test baja (en LightGBM, de 0,847 a 0,843).
+\\
+
+Esto es coherente con que la validación interna sea ruidosa, aunque no lo demuestra. En esta variante, buscar más ha dado candidatas que puntúan mejor en la validación interna, pero no en el test.
+\\
+
+Se ha decidido \textbf{no utilizar Optuna}. Haría una búsqueda guiada hacia las candidatas con mejor F1 macro interna, pero si esta es ruidosa, como se sospecha, podría no ser útil. No se ha probado que no ayude, pero con los datos obtenidos, no parece que pudiera dar demasiados frutos.
+\\
+
 \sintesisdecision{
   \item \sintesisclave{Hiperparametrización} \gls{busqueda-rejilla} (\texttt{GridSearchCV}) para la regresión logística y \gls{busqueda-aleatoria} de 30 candidatas para los modelos de árboles, con validación cruzada interna de 3 pliegues agrupados por calle, para cada partición y conjunto de variables y solo con los datos de entrenamiento. En caso de empate (diferencia menor de 0,005 de F1 macro) se elige la candidata más simple.
-  \item \sintesisclave{Efecto} el ajuste mejora la regresión logística, sobre todo con el conjunto completo, pero apenas modifica el resultado de los modelos de árboles.}
+  \item \sintesisclave{Efecto} el ajuste mejora la regresión logística, sobre todo con el conjunto completo, pero apenas modifica el resultado de los modelos de árboles.
+  \item \sintesisclave{Árboles} se mantienen ajustados con el procedimiento principal (A) y no se usa un optimizador adicional, como se justifica en la subsección~\ref{subsec:dis-robustez-ajuste}.}
 
 \section{Implementación y reproducibilidad}
 \label{sec:dis-implementacion}
