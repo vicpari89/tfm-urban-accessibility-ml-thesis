@@ -618,3 +618,66 @@
   text = {semilla},
   description = {Valor inicial (\emph{seed}) del generador de números aleatorios, que una vez fijado permite reproducir el mismo reparto de los datos}
 }
+
+@entry{hiperparametro,
+  name = {Hiperparámetro},
+  text = {hiperparámetro},
+  plural = {hiperparámetros},
+  description = {Valor de configuración de un modelo que se decide antes del entrenamiento y que el modelo no aprende de los datos, como la profundidad máxima de los árboles}
+}
+
+@entry{validacion-cruzada-anidada,
+  name = {Validación cruzada anidada},
+  text = {validación cruzada anidada},
+  description = {Validación cruzada que se realiza dentro de los datos de entrenamiento de cada partición para elegir los hiperparámetros, de forma que el conjunto de test no interviene en esa elección}
+}
+
+@entry{busqueda-rejilla,
+  name = {Búsqueda en rejilla},
+  text = {búsqueda en rejilla},
+  description = {Búsqueda de hiperparámetros (\emph{grid search}) que prueba todas las combinaciones posibles de una lista de valores}
+}
+
+@entry{busqueda-aleatoria,
+  name = {Búsqueda aleatoria},
+  text = {búsqueda aleatoria},
+  description = {Búsqueda de hiperparámetros (\emph{random search}) que prueba un número fijo de combinaciones elegidas al azar dentro de unos rangos elegidos}
+}
+
+@entry{optuna,
+  name = {Optuna},
+  text = {Optuna},
+  description = {Biblioteca de optimización de hiperparámetros que realiza una búsqueda guiada: usa los resultados de las candidatas ya probadas para elegir las siguientes}
+}
+
+@entry{regularizacion,
+  name = {Regularización},
+  text = {regularización},
+  description = {Mecanismo que frena al modelo para que no se ajuste demasiado a los datos de entrenamiento, por ejemplo reduciendo los pesos de las variables}
+}
+
+@entry{sobreajuste,
+  name = {Sobreajuste},
+  text = {sobreajuste},
+  description = {Situación en la que el modelo memoriza los datos de entrenamiento (\emph{overfitting}) y generaliza mal a datos que no ha utilizado para entrenar}
+}
+
+@entry{tasa-aprendizaje,
+  name = {Tasa de aprendizaje},
+  text = {tasa de aprendizaje},
+  description = {Hiperparámetro (\emph{learning rate}) de los modelos de \emph{gradient boosting} que indica cuánto corrige cada árbol nuevo a los anteriores}
+}
+
+@entry{particion,
+  name = {Partición},
+  text = {partición},
+  plural = {particiones},
+  description = {División de los datos en un conjunto de entrenamiento y otro de test}
+}
+
+@entry{hoja,
+  name = {Hoja},
+  text = {hoja},
+  plural = {hojas},
+  description = {Nodo final de un árbol de decisión, que ya no se divide más y en el que se asigna la predicción}
+}

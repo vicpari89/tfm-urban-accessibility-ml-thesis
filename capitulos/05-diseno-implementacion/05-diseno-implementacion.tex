@@ -3,32 +3,41 @@
 En este capítulo se indican los pasos seguidos a la hora de elaborar el diseño y la implementación de los algoritmos de los modelos de clasificación.
 \\
 
-\section{Variable objetivo y variables de entrada}
-\label{sec:dis-variables}
+Se organiza en cinco bloques: los datos de entrada (sección~\ref{sec:dis-datos}), la división de los datos y las métricas (sección~\ref{sec:dis-division-metricas}), los modelos y los experimentos (sección~\ref{sec:dis-modelos-experimentos}), la hiperparametrización (sección~\ref{sec:dis-hiperparametrizacion}) y la implementación y reproducibilidad (sección~\ref{sec:dis-implementacion}).
+\\
 
-La \gls{variable-objetivo} del modelo es la clase de accesibilidad, una variable ordinal que puede tomar como valores A, B y C, de mayor a menor accesibilidad.
+\section{Datos de entrada}
+\label{sec:dis-datos}
+
+En este bloque se describen los datos de partida: la variable objetivo, las variables de entrada, sus correlaciones y los conjuntos de variables que se comparan.
+\\
+
+\subsection{Variable objetivo y variables de entrada}
+\label{subsec:dis-variables}
+
+La \textbf{\gls{variable-objetivo}} del modelo es la \textbf{clase de accesibilidad}, una variable ordinal que puede tomar como valores A, B y C, de mayor a menor accesibilidad.
 \\
 
 Existen cuatro variables objetivo, una por cada perfil de diversidad (funcional, sensorial y cognitivo) y una global, en el conjunto unificado de datos (tabla~\ref{tab:columnas-unificadas}): \texttt{clase\_total}, \texttt{clase\_funcional}, \texttt{clase\_sensorial} y \texttt{clase\_cognitiva}.
 \\
 
-En cuanto a las variables de entrada, se van a utilizar las 28 puntuaciones por dimensión, \texttt{puntuacion\_*\_*}, una por cada combinación de las 7 dimensiones (pendiente, anchura, pavimento, cruces, señalización, iluminación y mobiliario) y las 4 puntuaciones: la global y las de los 3 perfiles de diversidad (funcional, sensorial y cognitivo). Por ejemplo, \texttt{puntuacion\_pendiente\_global} o \texttt{puntuacion\_cruces\_sensorial}.
+En cuanto a las variables de entrada, se van a utilizar las \textbf{28 puntuaciones por dimensión}, \texttt{puntuacion\_*\_*}, una por cada combinación de las 7 dimensiones (pendiente, anchura, pavimento, cruces, señalización, iluminación y mobiliario) y las 4 puntuaciones: la global y las de los 3 perfiles de diversidad (funcional, sensorial y cognitivo). Por ejemplo, \texttt{puntuacion\_pendiente\_global} o \texttt{puntuacion\_cruces\_sensorial}.
 \\
 
-Quedan fuera las cuatro puntuaciones totales (\texttt{puntuacion\_\allowbreak total}, \texttt{puntuacion\_\allowbreak total\_\allowbreak funcional}, \texttt{puntuacion\_\allowbreak total\_\allowbreak sensorial} y \texttt{puntuacion\_\allowbreak total\_\allowbreak cognitiva}), por provocar \gls{fuga-informacion}: la clase se calcula directamente a partir de ellas.
+Quedan fuera las cuatro puntuaciones totales (\texttt{puntuacion\_\allowbreak total}, \texttt{puntuacion\_\allowbreak total\_\allowbreak funcional}, \texttt{puntuacion\_\allowbreak total\_\allowbreak sensorial} y \texttt{puntuacion\_\allowbreak total\_\allowbreak cognitiva}), por provocar \textbf{\gls{fuga-informacion}}: la clase se calcula directamente a partir de ellas.
 \\
 
 \sintesisdecision{
   \item \sintesisclave{Variables objetivo} \texttt{clase\_total}, \texttt{clase\_funcional}, \texttt{clase\_sensorial} y \texttt{clase\_cognitiva}.
   \item \sintesisclave{Variables de entrada} las 28 puntuaciones \texttt{puntuacion\_*\_*}, sin las cuatro puntuaciones totales.}
 
-\section{Análisis de correlaciones}
-\label{sec:dis-correlaciones}
+\subsection{Análisis de correlaciones}
+\label{subsec:dis-correlaciones}
 
 Se han analizado las correlaciones del conjunto de datos unificado para estudiar la relación entre las dimensiones, ver si los perfiles son similares o no, y comprobar la relación de cada dimensión con la clase.
 \\
 
-Como la clase es \textit{ordinal} ($\mathrm{C} < \mathrm{B} < \mathrm{A}$), se ha decidido utilizar el coeficiente de rangos de Spearman en lugar del de Pearson \parencite{minitab_pearson_spearman}. Los valores cercanos a $1$ indican una correlación positiva, mientras que los cercanos a $0$ indican falta de correlación. De igual manera, los cercanos a $-1$ indican correlación negativa.
+Como la clase es \textit{ordinal} ($\mathrm{C} < \mathrm{B} < \mathrm{A}$), se ha decidido utilizar el \textbf{coeficiente de rangos de Spearman} en lugar del de Pearson \parencite{minitab_pearson_spearman}. Los valores cercanos a $1$ indican una correlación positiva, mientras que los cercanos a $0$ indican falta de correlación. De igual manera, los cercanos a $-1$ indican correlación negativa.
 \\
 
 \textit{Relación entre dimensiones.} En el perfil global (figura~\ref{fig:corr-dimensiones-global}) se ha comprobado que en ambas ciudades las dimensiones más relacionadas son el pavimento y la anchura con los cruces, destacando especialmente en Albacete (pavimento-cruces con 0,80 y anchura-cruces con 0,74). También destacan en esta ciudad pavimento con mobiliario (0,78), anchura con pavimento (0,70) y cruces con mobiliario (0,69).
@@ -69,21 +78,69 @@ Destacan los cruces, la anchura y el pavimento, con valores de entre 0,55 y 0,75
   \fuente{Elaboración propia.}
 \end{figure}
 
-Ninguna dimensión explica la clase por sí sola, puesto que ninguna se acerca a 1, y la dimensión de la pendiente es la más diferente respecto a las demás.
+\textbf{Ninguna dimensión explica la clase por sí sola}, puesto que ninguna se acerca a 1, y la dimensión de la pendiente es la más diferente respecto a las demás.
 \\
 
 \textit{Puntuaciones totales.} Se ha comprobado que, en los cuatro perfiles y en las dos ciudades, cada clase se obtiene exactamente a partir de los tercios de su puntuación total ($\mathrm{C}$ por debajo de $1/3$, $\mathrm{B}$ hasta $2/3$ y $\mathrm{A}$ desde $2/3$).
 \\
 
-Además, el total está más correlacionado con la clase que cualquier dimensión por separado (0,88 frente a 0,67 de los cruces en el perfil global de Algeciras). Por eso no se usa como variable de entrada (sección~\ref{sec:dis-variables}). Si se usara, el modelo solo tendría que aprender de ella.
+Además, el total está más correlacionado con la clase que cualquier dimensión por separado (0,88 frente a 0,67 de los cruces en el perfil global de Algeciras). Por eso no se usa como variable de entrada (subsección~\ref{subsec:dis-variables}). Si se usara, el modelo solo tendría que aprender de ella.
 \\
 
 \sintesisdecision{
   \item \sintesisclave{Dimensiones y perfiles} las más correladas son pavimento, cruces y anchura, y la pendiente la que menos; los perfiles ordenan las calles casi igual.
   \item \sintesisclave{Clase} ninguna dimensión la explica sola, los totales quedan fuera de la entrada.}
 
-\section{División de los datos}
-\label{sec:dis-division}
+\subsection{Conjuntos de variables}
+\label{subsec:dis-conjuntos-variables}
+
+Se han organizado los \textbf{conjuntos de variables} según el origen del que se podrían obtener las dimensiones. Una dimensión se incluye en un conjunto si su viabilidad estimada para esa fuente (tabla~\ref{tab:viabilidad}) es de al menos el \textbf{50\,\%}.
+\\
+
+Se ha elegido este umbral porque, si al menos la mitad de las características de una dimensión se pueden obtener de esa fuente, se considera suficiente para evaluarla. Un umbral más exigente, como el 75\,\%, dejaría vacío el conjunto cartográfico y aéreo. Es un umbral subjetivo, así que se utiliza como criterio exploratorio y se prueba con otros en el capítulo de resultados.
+\\
+
+Se han definido cuatro conjuntos diferentes: \textbf{cartográfico y aéreo}, \textbf{calle}, \textbf{combinado} y \textbf{completo}. El cartográfico y aéreo reúne las dimensiones obtenibles de cartografía pública o de imágenes aéreas; el de calle, las que se pueden obtener a partir de imágenes a pie de calle; el combinado, las que se obtienen de cualquiera de las tres fuentes de imagen o cartografía; y el completo incluye todas las dimensiones. La tabla~\ref{tab:conjuntos-variables} indica qué dimensiones pertenecen a cada conjunto.
+\\
+
+\begin{table}[htbp]
+  \centering
+  \caption{Dimensiones incluidas en cada conjunto de variables.}
+  \label{tab:conjuntos-variables}
+  \small
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X c c c c}
+    \toprule
+    \cabeceratabla Dimensión & Cartográfico y aéreo & Calle & Combinado & Completo \\
+    \midrule
+    Pendiente    & No & No & No & Sí \\
+    Anchura      & No & Sí & Sí & Sí \\
+    Pavimento    & No & No & No & Sí \\
+    Cruces       & Sí & Sí & Sí & Sí \\
+    Señalización & No & Sí & Sí & Sí \\
+    Iluminación  & No & No & No & Sí \\
+    Mobiliario   & Sí & Sí & Sí & Sí \\
+    \bottomrule
+  \end{tabularx}
+  \fuente{Elaboración propia.}
+\end{table}
+
+Para cartográfico y aéreo se incluyen las dimensiones cruces y mobiliario; para calle y combinado, anchura, cruces, señalización y mobiliario. La pendiente no entra en el conjunto cartográfico y aéreo porque su puntuación incluye la pendiente transversal y la del vado, que la cartografía no permite estimar.
+\\
+
+Como nota, el conjunto combinado coincide exactamente con el de calle, por lo que no se podría contrastar la hipótesis H3, ya que no aporta ninguna dimensión que no se pueda obtener con el de calle.
+\\
+
+\sintesisdecision{
+  \item \sintesisclave{Conjuntos de variables} cartográfico y aéreo, a pie de calle, combinado y completo; una dimensión se incluye si su viabilidad estimada para esa fuente es de al menos el 50\,\%.}
+
+\section{División de los datos y métricas}
+\label{sec:dis-division-metricas}
+
+En este bloque se explica cómo se dividen los datos para evaluar los modelos y qué métricas se utilizan.
+\\
+
+\subsection{División de los datos}
+\label{subsec:dis-division}
 
 Se ha comprobado si los tramos de una misma calle son similares entre sí, así como los tramos de cada barrio. Al comparar la puntuación total de un tramo con la de otro tramo de su misma calle, la diferencia media es menor que con un tramo elegido al azar de la misma ciudad (0,104 frente a 0,130 en Albacete, y 0,144 frente a 0,160 en Algeciras). La relación es pequeña (en Algeciras, la diferencia entre ambas medias es de solo 0,016), por lo que la agrupación por calle se mantiene como precaución. La razón de fondo es metodológica (subsección~\ref{subsec:validacion-conclusiones}): evitar que tramos casi idénticos de una misma calle acaben en entrenamiento y en test.
 \\
@@ -102,7 +159,7 @@ Por lo tanto, la división de los datos \textbf{se agrupa por calle} (columna \t
   \fuente{Elaboración propia.}
 \end{figure}
 
-Para evaluar los modelos se va a utilizar \gls{validacion-cruzada}: el conjunto de datos se divide en varios subconjuntos disjuntos, denominados \glspl{pliegue} (\textit{folds}). En cada iteración, uno de los pliegues se reserva para test y los restantes se usan para entrenamiento, de forma que cada pliegue actúa como test una vez. Se han establecido 5 pliegues.
+Para evaluar los modelos se va a utilizar \textbf{\gls{validacion-cruzada}}: el conjunto de datos se divide en varios subconjuntos disjuntos, denominados \textbf{\glspl{pliegue}} (\textit{folds}). En cada iteración, uno de los pliegues se reserva para test y los restantes se usan para entrenamiento, de forma que cada pliegue actúa como test una vez. Se han establecido 5 pliegues.
 \\
 
 El conjunto de datos es bastante desbalanceado, y la clase A es muy minoritaria (24 tramos en Albacete y 28 en Algeciras). Es necesario que los pliegues se hagan teniendo en cuenta esto, para evitar que existan algunos con muy pocos tramos de clase A (o ninguno), tanto en entrenamiento como en test.
@@ -114,7 +171,7 @@ Como se busca tener pliegues con una proporción parecida de tramos de clase A, 
 La estratificación es aproximada, porque las calles no se pueden partir: con la agrupación por calle, algunos pliegues de test tienen solo 2 tramos de clase A (en ambas ciudades). Por ello, se informará de la variabilidad de las métricas entre pliegues, y no solo de su media.
 \\
 
-Se contemplan tres estrategias de división (tabla~\ref{tab:estrategias-division}). En la estrategia entre ciudades no hay pliegues, sino una única partición por sentido (de Albacete a Algeciras, y viceversa).
+Se contemplan tres estrategias de división: \textbf{dentro de cada ciudad}, \textbf{entre ciudades} y \textbf{mezclada} (tabla~\ref{tab:estrategias-division}). En la estrategia entre ciudades no hay pliegues, sino una única \gls{particion} por sentido (de Albacete a Algeciras, y viceversa).
 \\
 
 \begin{table}[htbp]
@@ -141,58 +198,22 @@ Se contemplan tres estrategias de división (tabla~\ref{tab:estrategias-division
   \item \sintesisclave{Validación} cruzada con \texttt{StratifiedGroupKFold}, 5 pliegues, estratificada con \texttt{clase\_total} y \textit{seed} 42.
   \item \sintesisclave{Estrategias} dentro de cada ciudad, entre ciudades y mezclada.}
 
-\section{Conjuntos de variables}
-\label{sec:dis-conjuntos-variables}
-
-Se han organizado los conjuntos de variables según el origen del que se podrían obtener las dimensiones. Una dimensión se incluye en un conjunto si su viabilidad estimada para esa fuente (tabla~\ref{tab:viabilidad}) es de al menos el 50\,\%. Se ha elegido este umbral porque, si al menos la mitad de las características de una dimensión se pueden obtener de esa fuente, se considera suficiente para evaluarla. Un umbral más exigente, como el 75\,\%, dejaría vacío el conjunto cartográfico y aéreo.
-\\
-
-Se han definido cuatro conjuntos diferentes: cartográfico y aéreo, calle, combinado y completo. El cartográfico y aéreo reúne las dimensiones obtenibles de cartografía pública o de imágenes aéreas; el de calle, las que se pueden obtener a partir de imágenes a pie de calle; el combinado, las que se obtienen de cualquiera de las tres fuentes de imagen o cartografía; y el completo incluye todas las dimensiones. La tabla~\ref{tab:conjuntos-variables} indica qué dimensiones pertenecen a cada conjunto.
-\\
-
-\begin{table}[htbp]
-  \centering
-  \caption{Dimensiones incluidas en cada conjunto de variables.}
-  \label{tab:conjuntos-variables}
-  \small
-  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X c c c c}
-    \toprule
-    \cabeceratabla Dimensión & Cartográfico y aéreo & Calle & Combinado & Completo \\
-    \midrule
-    Pendiente    & No & No & No & Sí \\
-    Anchura      & No & Sí & Sí & Sí \\
-    Pavimento    & No & No & No & Sí \\
-    Cruces       & Sí & Sí & Sí & Sí \\
-    Señalización & No & Sí & Sí & Sí \\
-    Iluminación  & No & No & No & Sí \\
-    Mobiliario   & Sí & Sí & Sí & Sí \\
-    \bottomrule
-  \end{tabularx}
-  \fuente{Elaboración propia.}
-\end{table}
-
-Para cartográfico y aéreo se incluyen las dimensiones cruces y mobiliario; para calle y combinado, anchura, cruces, señalización y mobiliario. La pendiente no entra en el conjunto cartográfico y aéreo porque su puntuación incluye la pendiente transversal y la del vado, que la cartografía no permite estimar. Como nota, el conjunto combinado coincide exactamente con el de calle, por lo que no se podría contrastar la hipótesis H3, ya que no aporta ninguna dimensión que no se pueda obtener con el de calle.
-\\
-
-\sintesisdecision{
-  \item \sintesisclave{Conjuntos de variables} cartográfico y aéreo, a pie de calle, combinado y completo; una dimensión se incluye si su viabilidad estimada para esa fuente es de al menos el 50\,\%.}
-
-\section{Métricas}
-\label{sec:dis-metricas}
+\subsection{Métricas}
+\label{subsec:dis-metricas}
 
 Se utilizan tres métricas, todas de scikit-learn \parencite{sklearn_metrics}.
 \\
 
-La \glslink{f1-macro}{F1 macro} (\textit{macro F1}; \texttt{f1\_\allowbreak score} con \texttt{average=\allowbreak "macro"}) es la media de la F1 de cada clase, dando el mismo peso a cada clase (ecuación~\ref{eq:f1-macro}), donde $K = 3$ es el número de clases (C, B y A) y $\mathrm{F1}_c$ es la F1 de la clase $c$:
+La \textbf{\glslink{f1-macro}{F1 macro}} (\textit{macro F1}; \texttt{f1\_\allowbreak score} con \texttt{average=\allowbreak "macro"}) es la media de la F1 de cada clase, dando el mismo peso a cada clase (ecuación~\ref{eq:f1-macro}), donde $K = 3$ es el número de clases (C, B y A) y $\mathrm{F1}_c$ es la F1 de la clase $c$:
 \begin{equation}
   \text{F1 macro} = \frac{1}{K} \sum_{c=1}^{K} \mathrm{F1}_c
   \label{eq:f1-macro}
 \end{equation}
 
-La \glslink{exactitud-balanceada}{exactitud balanceada} (\textit{balanced accuracy}; \texttt{balanced\_\allowbreak accuracy\_\allowbreak score}) es la media de la proporción de tramos que se acierta en cada clase, de manera que cada clase cuenta igual, sea cual sea su tamaño.
+La \textbf{\glslink{exactitud-balanceada}{exactitud balanceada}} (\textit{balanced accuracy}; \texttt{balanced\_\allowbreak accuracy\_\allowbreak score}) es la media de la proporción de tramos que se acierta en cada clase, de manera que cada clase cuenta igual, sea cual sea su tamaño.
 \\
 
-La \glslink{kappa-ponderada}{kappa ponderada cuadrática} (\textit{quadratic weighted kappa}; \texttt{cohen\_\allowbreak kappa\_\allowbreak score} con \texttt{weights=\allowbreak "quadratic"}) compara la clase real con la predicha, descontando los aciertos que se esperarían por azar \parencite{cohen1968}. Los errores que predicen una clase más lejana en cuanto al orden penalizan más, es decir, confundir A con C penaliza más que confundir A con B.
+La \textbf{\glslink{kappa-ponderada}{kappa ponderada cuadrática}} (\textit{quadratic weighted kappa}; \texttt{cohen\_\allowbreak kappa\_\allowbreak score} con \texttt{weights=\allowbreak "quadratic"}) compara la clase real con la predicha, descontando los aciertos que se esperarían por azar \parencite{cohen1968}. Los errores que predicen una clase más lejana en cuanto al orden penalizan más, es decir, confundir A con C penaliza más que confundir A con B.
 \\
 
 No se utiliza la exactitud (\textit{accuracy}) porque favorece a la clase mayoritaria: en Albacete, predecir siempre B daría un 78,2\,\%. La justificación de las métricas está en la subsección~\ref{subsec:ml-ordinal}.
@@ -201,20 +222,26 @@ No se utiliza la exactitud (\textit{accuracy}) porque favorece a la clase mayori
 \sintesisdecision{
   \item \sintesisclave{Métricas} F1 macro, exactitud balanceada y kappa ponderada cuadrática.}
 
-\section{Modelos de referencia}
-\label{sec:dis-modelos-referencia}
+\section{Modelos y experimentos}
+\label{sec:dis-modelos-experimentos}
 
-Se usan dos \glslink{modelo-referencia}{modelos de referencia}. El modelo \textit{dummy} (\texttt{DummyClassifier} de scikit-learn, con \texttt{strategy=\allowbreak "most\_\allowbreak frequent"}), que predice siempre la clase más frecuente ignorando las variables de entrada, por lo que es el modelo mínimo: cualquier otro modelo debería mejorarlo.
+En este bloque se presentan los modelos y la matriz de experimentos con la que se comparan.
 \\
 
-Por otro lado, se usa la \glslink{regresion-logistica}{regresión logística} (\texttt{LogisticRegression} de scikit-learn, con \mbox{\texttt{max\_iter=1000}}). Con \texttt{class\_\allowbreak weight=\allowbreak "balanced"} se asigna a cada clase un peso inversamente proporcional a su frecuencia, de esta manera los errores en clases minoritarias penalizan más durante el entrenamiento. Es la referencia seleccionada por el autor como base.
+\subsection{Modelos de referencia}
+\label{subsec:dis-modelos-referencia}
+
+Se usan dos \glslink{modelo-referencia}{modelos de referencia}. El \textbf{modelo \textit{dummy}} (\texttt{DummyClassifier} de scikit-learn, con \texttt{strategy=\allowbreak "most\_\allowbreak frequent"}), que predice siempre la clase más frecuente ignorando las variables de entrada, por lo que es el modelo mínimo: cualquier otro modelo debería mejorarlo.
+\\
+
+Por otro lado, se usa la \textbf{\glslink{regresion-logistica}{regresión logística}} (\texttt{LogisticRegression} de scikit-learn, con \mbox{\texttt{max\_iter=1000}}). Con \texttt{class\_\allowbreak weight=\allowbreak "balanced"} se asigna a cada clase un peso inversamente proporcional a su frecuencia, de esta manera los errores en clases minoritarias penalizan más durante el entrenamiento. Es la referencia seleccionada por el autor como base.
 \\
 
 \sintesisdecision{
   \item \sintesisclave{Modelos de referencia} \textit{dummy} (clase más frecuente) y regresión logística con \texttt{class\_\allowbreak weight=\allowbreak "balanced"}.}
 
-\section{Modelos de árboles}
-\label{sec:dis-modelos-arboles}
+\subsection{Modelos de árboles}
+\label{subsec:dis-modelos-arboles}
 
 Se utilizan tres modelos basados en árboles, con la interfaz de scikit-learn: \glslink{random-forest}{\textit{random forest}} (\texttt{Random\allowbreak Forest\allowbreak Classifier}), XGBoost (\texttt{XGB\allowbreak Classifier}) y LightGBM (\texttt{LGBM\allowbreak Classifier}), estos dos últimos de tipo \glslink{gradient-boosting}{\textit{gradient boosting}}. Referencia: subsección~\ref{subsec:ml-tabular}.
 \\
@@ -222,22 +249,22 @@ Se utilizan tres modelos basados en árboles, con la interfaz de scikit-learn: \
 Las clases se tratan como independientes, aunque se codifican en orden ($\mathrm{C} = 0$, $\mathrm{B} = 1$ y $\mathrm{A} = 2$), y se entrena un modelo para cada combinación de conjunto de variables, perfil y partición.
 \\
 
-En cuanto a la configuración base, los tres modelos se han creado con 300 árboles (\mbox{\texttt{n\_estimators=300}}), con todos los procesadores disponibles en paralelo durante el entrenamiento (\texttt{n\_jobs=\allowbreak -1}), así como con el mismo \textit{seed} que en la división de datos. El resto de hiperparámetros se dejan con los valores por defecto de cada librería, puesto que de momento no se ha realizado la hiperparametrización.
+En cuanto a la configuración base, los tres modelos se han creado con 300 árboles (\mbox{\texttt{n\_estimators=300}}), con todos los procesadores disponibles en paralelo durante el entrenamiento (\texttt{n\_jobs=\allowbreak -1}), así como con el mismo \textit{seed} que en la división de datos. El resto de \glspl{hiperparametro} se dejan con los valores por defecto de cada librería, y su ajuste se describe en la sección~\ref{sec:dis-hiperparametrizacion}.
 \\
 
-Como se había indicado en la subsección~\ref{subsec:ml-ordinal}, se realiza una ponderación de clases para tratar el desbalanceo de las clases minoritarias. Concretamente, en \textit{random forest} y LightGBM se usa el parámetro \texttt{class\_\allowbreak weight=\allowbreak "balanced"}, así como en la regresión logística.
+Como se había indicado en la subsección~\ref{subsec:ml-ordinal}, se realiza una \textbf{ponderación de clases} para tratar el desbalanceo de las clases minoritarias. Concretamente, en \textit{random forest} y LightGBM se usa el parámetro \texttt{class\_\allowbreak weight=\allowbreak "balanced"}, así como en la regresión logística.
 \\
 
 Sin embargo, en XGBoost no existe ese parámetro, por lo que se utiliza el método \mbox{\texttt{compute\_sample\_weight}} de scikit-learn pasando como argumento \texttt{sample\_weight} los pesos inversamente proporcionales a la frecuencia de cada clase, en los tramos de entrenamiento.
 \\
 
-\section{Matriz de experimentos}
-\label{sec:dis-matriz-experimentos}
+\subsection{Matriz de experimentos}
+\label{subsec:dis-matriz-experimentos}
 
 Se ha definido un \textbf{experimento} como la combinación del conjunto de variables, partición de los datos, perfil y modelo. Se realiza un experimento con todas las combinaciones posibles de estos valores.
 \\
 
-Los modelos de los experimentos son los modelos base descritos en las secciones anteriores, sin hiperparametrizar. La hiperparametrización está pendiente y se resolverá en la siguiente sección.
+Los modelos de los experimentos son los modelos base descritos en las subsecciones anteriores, con los valores por defecto. En la sección~\ref{sec:dis-hiperparametrizacion} se ajustan los hiperparámetros y se repite la matriz.
 \\
 
 En cada experimento, se realizan los siguientes pasos:
@@ -245,10 +272,10 @@ En cada experimento, se realizan los siguientes pasos:
 \begin{enumerate}
   \item Se entrena el modelo en los tramos de la partición de entrenamiento.
   \item Se predice con el modelo en los tramos de la partición de test.
-  \item Se calculan las tres métricas seleccionadas (sección~\ref{sec:dis-metricas}).
+  \item Se calculan las tres métricas seleccionadas (subsección~\ref{subsec:dis-metricas}).
 \end{enumerate}
 
-Una vez se terminan todos los experimentos con todas las combinaciones posibles, se genera la matriz de experimentos, descrita en la tabla~\ref{tab:matriz-experimentos}.
+Una vez se terminan todos los experimentos con todas las combinaciones posibles, se genera la \textbf{matriz de experimentos}, descrita en la tabla~\ref{tab:matriz-experimentos}.
 \\
 
 \begin{table}[htbp]
@@ -274,16 +301,16 @@ Una vez se terminan todos los experimentos con todas las combinaciones posibles,
   \fuente{Elaboración propia.}
 \end{table}
 
-Se calcula, para cada estrategia de división, la media y la desviación típica de las métricas entre pliegues, para los casos de dentro de cada ciudad y mezclada entre ciudades. Sin embargo, no se realiza ese cálculo en la transferencia entre ciudades, puesto que no existen pliegues (sección~\ref{sec:dis-division}).
+Se calcula, para cada estrategia de división, la media y la desviación típica de las métricas entre pliegues, para los casos de dentro de cada ciudad y mezclada entre ciudades. Sin embargo, no se realiza ese cálculo en la transferencia entre ciudades, puesto que no existen pliegues (subsección~\ref{subsec:dis-division}).
 \\
 
-Como el conjunto combinado tiene las mismas dimensiones que el de calle (sección~\ref{sec:dis-conjuntos-variables}), se obtienen resultados idénticos para los dos, aunque se han comprobado igualmente.
+Como el conjunto combinado tiene las mismas dimensiones que el de calle (subsección~\ref{subsec:dis-conjuntos-variables}), se obtienen resultados idénticos para los dos, aunque se han comprobado igualmente.
 \\
 
-Para poder realizar el contraste de hipótesis, se utiliza la F1 macro, con el valor más alto entre los modelos ejecutados para cada conjunto (el de mayor F1 macro medio en el caso de las particiones con pliegues). Siguiendo los criterios de refutación de la subsección~\ref{subsec:ml-conclusiones} (hipótesis en la tabla~\ref{tab:hipotesis}), se refutan las hipótesis cuando el valor de F1 macro es inferior al 80\,\% del modelo de comparación, que en H1, H2 y H5 es el del conjunto de datos completo y en H3 y H4 el indicado en la tabla~\ref{tab:comparaciones-hipotesis}.
+Para poder realizar el contraste de hipótesis, se utiliza la F1 macro de un único modelo, \textit{random forest}, fijado de antemano y que es el mismo para todos los conjuntos. Siguiendo los criterios de refutación de la subsección~\ref{subsec:ml-conclusiones} (hipótesis en la tabla~\ref{tab:hipotesis}), se refutan las hipótesis cuando el valor de F1 macro es inferior al \textbf{80\,\%} del modelo de comparación, que en H1, H2 y H5 es el del conjunto de datos completo y en H3 y H4 el indicado en la tabla~\ref{tab:comparaciones-hipotesis}.
 \\
 
-El resultado de elegir el mejor modelo de cada conjunto a partir de los datos de test puede estar inflado por el azar, puesto que hay pocos tramos de las clases minoritarias. Por ello, la mejor forma de comparar se decidirá más adelante.
+No se elige el mejor modelo de cada conjunto a partir de los datos de test, porque ese resultado puede estar inflado por el azar, puesto que hay pocos tramos de las clases minoritarias. Por eso se fija el modelo de antemano.
 \\
 
 Las hipótesis H6 y H7 no se contrastan con la matriz de experimentos, por lo que no aparecen en la tabla~\ref{tab:comparaciones-hipotesis}.
@@ -313,13 +340,266 @@ Las hipótesis H6 y H7 no se contrastan con la matriz de experimentos, por lo qu
 \end{table}
 
 \sintesisdecision{
-  \item \sintesisclave{Modelos de árboles} \textit{random forest}, XGBoost y LightGBM, con 300 árboles y con las clases balanceadas. Son modelos base, sin hiperparametrizar de momento.
-  \item \sintesisclave{Matriz de experimentos} 17 particiones, 4 conjuntos de variables, 4 perfiles y 5 modelos (1360 experimentos), comparados con la F1 macro del mejor modelo de cada conjunto. Se usan los modelos base, a la espera de la hiperparametrización de la siguiente sección.}
+  \item \sintesisclave{Modelos de árboles} \textit{random forest}, XGBoost y LightGBM, con 300 árboles y con las clases balanceadas. Son modelos base, con los valores por defecto.
+  \item \sintesisclave{Matriz de experimentos} 17 particiones, 4 conjuntos de variables, 4 perfiles y 5 modelos (1360 experimentos), comparados con la F1 macro de \textit{random forest}, un modelo fijado de antemano para no elegirlo según el test. Se usan primero los modelos base, y después los ajustados de la sección siguiente.}
 
 \section{Hiperparametrización}
 \label{sec:dis-hiperparametrizacion}
 
-Nota: pendiente de realizar.
+Un \textbf{hiperparámetro} es un valor que se decide \emph{antes} de entrenar y que el modelo no aprende de los datos, como por ejemplo la profundidad máxima de los árboles. \textbf{Ajustar} es elegir esos valores probando varias combinaciones y quedarse con la que mejor funciona con datos distintos de los de entrenamiento. Si se puntuara cada combinación con los mismos datos con los que se entrenó, ganaría la que más memoriza (\gls{sobreajuste}) y no la que mejor generaliza.
+\\
+
+Por ello, el orden es el siguiente, y el conjunto de test de una partición \textbf{nunca se utiliza} para elegir hiperparámetros:
+
+\begin{enumerate}
+  \item \textbf{Ajustar:} se prueban las combinaciones solo con los tramos de entrenamiento de la partición, divididos en pliegues internos (subsección~\ref{subsec:dis-validacion-interna}).
+  \item \textbf{Entrenar:} con la combinación ganadora, se entrena el modelo final con todos los tramos de entrenamiento.
+  \item \textbf{Evaluar:} se puntúa ese modelo una sola vez con el test.
+\end{enumerate}
+
+El ajuste se realiza de forma independiente en cada una de las 17 particiones (tabla~\ref{tab:matriz-experimentos}) y en cada conjunto de variables.
+\\
+
+Se ajustan los cuatro modelos seleccionados en el estado del arte (subsección~\ref{subsec:ml-conclusiones}): regresión logística, \textit{random forest}, XGBoost y LightGBM.
+\\
+
+\subsection{Espacios de búsqueda}
+\label{subsec:dis-espacios-busqueda}
+
+Para la regresión logística se realiza una \textbf{\gls{busqueda-rejilla}}, que prueba todas las combinaciones (\texttt{GridSearchCV} de scikit-learn), ya que tiene pocos valores posibles. Para los modelos de árboles hay demasiadas combinaciones, por lo que se utiliza una \textbf{\gls{busqueda-aleatoria}} con \texttt{RandomizedSearchCV}, que prueba 30 candidatas por partición, tomadas al azar del espacio de la tabla~\ref{tab:espacios-busqueda}.
+\\
+
+El tamaño mínimo de las \glspl{hoja} tiene un tope bajo (10 en el \textit{random forest} y 20 en LightGBM) para que hojas muy grandes no impidan predecir la clase A, que tiene muy pocos tramos.
+\\
+
+En la regresión logística, \texttt{C} controla la \gls{regularizacion}, es decir, cuánto se deja libre al modelo (con un valor pequeño es más simple, y con uno grande se ajusta más a los datos de entrenamiento), y \texttt{penalty} cómo se frena: \texttt{l2} reduce todos los pesos y \texttt{l1} lleva algunos a cero, es decir, descarta variables.
+\\
+
+El \texttt{solver} es el algoritmo que calcula los pesos y debe ser compatible con el \texttt{penalty} (\texttt{lbfgs} va con \texttt{l2} y \texttt{saga} con \texttt{l1}).
+\\
+
+En los modelos de árboles, \texttt{max\_depth} es la profundidad máxima de cada árbol, \texttt{min\_samples\_leaf} (\textit{random forest}) y \texttt{min\_child\_samples} (LightGBM) son el mínimo de tramos de cada hoja, y \texttt{max\_features} es la fracción de variables que se consideran en cada división.
+\\
+
+\begingroup
+\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.2\textwidth} >{\raggedright\arraybackslash}p{0.25\textwidth} >{\raggedright\arraybackslash}p{\dimexpr0.55\textwidth-6\tabcolsep\relax}}
+  \caption{Hiperparámetros ajustados y valores que se prueban.}\label{tab:espacios-busqueda}\\
+  \toprule
+  \cabeceratabla Modelo & Hiperparámetro & Valores \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \cabeceratabla Modelo & Hiperparámetro & Valores \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  Regresión logística (rejilla) & \texttt{C} & $10^{-3}$, $10^{-2}$, $10^{-1}$, 1, 10, 100, $10^{3}$ y $10^{4}$ \\
+   & \texttt{penalty} y \texttt{solver} & \texttt{l2} con \texttt{lbfgs}, y \texttt{l1} con \texttt{saga} \\
+  \arrayrulecolor{black!25}\cmidrule(lr){1-3}\arrayrulecolor{black}
+  \textit{Random forest} (30 candidatas) & \texttt{max\_depth} & Entero entre 3 y 15 \\
+   & \texttt{min\_samples\_leaf} & Entero entre 1 y 10 \\
+   & \texttt{max\_features} & Decimal entre 0,3 y 1 \\
+  \arrayrulecolor{black!25}\cmidrule(lr){1-3}\arrayrulecolor{black}
+  LightGBM (30 candidatas) & \texttt{learning\_rate} & Decimal entre 0,01 y 0,3 (escala logarítmica) \\
+   & \texttt{num\_leaves} & Entero entre 7 y 63 \\
+   & \texttt{n\_estimators} & Entero entre 100 y 500 \\
+   & \texttt{min\_child\_samples} & Entero entre 5 y 20 \\
+   & \texttt{subsample} y \texttt{colsample\_bytree} & Decimal entre 0,6 y 1 \\
+  \arrayrulecolor{black!25}\cmidrule(lr){1-3}\arrayrulecolor{black}
+  XGBoost (30 candidatas) & \texttt{learning\_rate} & Decimal entre 0,01 y 0,3 (escala logarítmica) \\
+   & \texttt{max\_depth} & Entero entre 2 y 6 \\
+   & \texttt{n\_estimators} & Entero entre 100 y 500 \\
+   & \texttt{min\_child\_weight} & Entero entre 1 y 10 \\
+   & \texttt{subsample} y \texttt{colsample\_bytree} & Decimal entre 0,6 y 1 \\
+\end{longtable}
+\endgroup
+\fuentelong{Elaboración propia.}
+
+En los dos de \textit{gradient boosting}, \texttt{n\_estimators} es el número de árboles, \texttt{learning\_rate} es la \gls{tasa-aprendizaje}, es decir, cuánto corrige cada árbol a los anteriores, y \texttt{subsample} y \texttt{colsample\_bytree} la fracción de tramos y de variables que utiliza cada árbol.
+\\
+
+Por último, \texttt{num\_leaves} es el máximo de hojas por árbol en LightGBM, y \texttt{min\_child\_weight} el peso mínimo que debe sumar una hoja en XGBoost, que cuenta más los tramos de clase A.
+\\
+
+No se ajustan \texttt{class\_\allowbreak weight=\allowbreak "balanced"}, que se calcula a partir de los datos de las clases, ni \texttt{max\_iter=1000} en la regresión logística ni \texttt{n\_estimators=300} en el \textit{random forest}.
+\\
+
+\subsection{Validación interna y desempate}
+\label{subsec:dis-validacion-interna}
+
+Se ha utilizado \textbf{\gls{validacion-cruzada-anidada}} \parencite{kudasova_nested_cv} para puntuar cada candidata, es decir, una \textbf{validación interna} dentro de cada partición de entrenamiento, en la que los tramos se dividen internamente en 3 pliegues utilizando \texttt{StratifiedGroupKFold}, igual que en la división de los datos (subsección~\ref{subsec:dis-division}). Se utilizan las mismas condiciones: una calle siempre queda en el mismo pliegue y el reparto de clases es similar.
+\\
+
+Cada candidata se entrena con 2 de los pliegues y se puntúa con el tercero, que no se ha utilizado en ese entrenamiento, usando la F1 macro. Esto se repite hasta que cada pliegue ha sido el de validación una vez (3 entrenamientos en total), y la nota de la candidata es la media de las F1 macro. Todas las candidatas de un modelo se prueban sobre los mismos pliegues.
+\\
+
+Se elige la candidata de mayor nota. Sin embargo, si otras candidatas están a menos de 0,005 de la mejor, se consideran \textbf{empatadas} y gana la más simple, porque una diferencia tan pequeña puede deberse al ruido. El algoritmo de \textbf{desempate} es diferente en cada modelo:
+
+\begin{itemize}
+  \item Regresión logística: menor \texttt{C} y, con el mismo \texttt{C}, \texttt{l1}.
+  \item \textit{Random forest}: menor profundidad, después hojas más grandes y después menos variables por división.
+  \item LightGBM: menos hojas, después menos árboles y después hojas más grandes.
+  \item XGBoost: menor profundidad, después menos árboles y después mayor \texttt{min\_child\_weight}.
+\end{itemize}
+
+Se ha comprobado que se ha utilizado el criterio de desempate en algunos casos. Concretamente, en 81 de los 204 ajustes (17 particiones, 3 conjuntos de variables y 4 modelos), la candidata elegida no es la de mayor nota.
+\\
+
+Se ha realizado el ajuste para cada partición y cada conjunto de variables, con el perfil global como referencia, y los valores elegidos se reutilizan en los 4 perfiles.
+\\
+
+Los conjuntos de calle y combinado tienen las mismas dimensiones (subsección~\ref{subsec:dis-conjuntos-variables}), así que comparten el ajuste y salen 3 ajustes distintos por partición y modelo (17 particiones $\times$ 3 conjuntos $\times$ 4 modelos, 204 en total).
+\\
+
+Hay que tener en cuenta que la nota de la validación interna es la mejor de entre muchas candidatas, por lo que es algo optimista. Por esa razón solo sirve para comparar candidatas de un mismo modelo y partición, y no para comparar unos modelos con otros, que se hace con el conjunto de test en la matriz de experimentos.
+\\
+
+\subsection{Resultados del ajuste}
+\label{subsec:dis-resultados-ajuste}
+
+En total se han evaluado \textbf{5406 candidatas}, 816 de la regresión logística y 1530 de cada modelo de árboles. Como cada partición y cada conjunto de variables se ajustan de manera independiente, los valores elegidos \textbf{varían} de un ajuste a otro.
+\\
+
+Por ejemplo, la regresión logística elige \texttt{l1} con \texttt{saga} en 31 de los 51 ajustes y \texttt{l2} con \texttt{lbfgs} en los otros 20, con un \texttt{C} que va de 10 a 10\,000. Aun así, algunos valores se repiten bastante: con el conjunto completo, en las particiones de Albacete el \textit{random forest} elige siempre árboles de profundidad 6 o 7, mientras que en las de Algeciras y en las mezcladas suele elegir profundidad 15.
+\\
+
+Para comprobar si el ajuste modifica los resultados, se ha repetido la matriz de experimentos con los hiperparámetros obtenidos y se ha comparado con la de los valores por defecto (tabla~\ref{tab:defecto-ajustado}). Se compara la \textbf{F1 macro en test}, y cada valor de la tabla es la media de todos los conjuntos de variables, perfiles y pliegues de esa estrategia y modelo.
+\\
+
+Como el ajuste solo ha usado los datos de entrenamiento de cada partición, el test sigue sin haberse usado para elegir nada.
+\\
+
+\begin{table}[htbp]
+  \centering
+  \caption{F1 macro media en test, con los hiperparámetros por defecto y ajustados.}
+  \label{tab:defecto-ajustado}
+  \small
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X >{\centering\arraybackslash}p{0.12\textwidth} >{\centering\arraybackslash}p{0.12\textwidth} >{\centering\arraybackslash}p{0.12\textwidth}}
+    \toprule
+    \cabeceratabla Estrategia y modelo & Por defecto & Ajustado & Diferencia \\
+    \midrule
+    Dentro de cada ciudad & & & \\
+    \quad Regresión logística & 0,754 & 0,831 & +0,077 \\
+    \quad \textit{Random forest} & 0,891 & 0,881 & $-$0,010 \\
+    \quad XGBoost & 0,888 & 0,877 & $-$0,011 \\
+    \quad LightGBM & 0,890 & 0,887 & $-$0,003 \\
+    \arrayrulecolor{black!25}\cmidrule(lr){1-4}\arrayrulecolor{black}
+    Mezclada & & & \\
+    \quad Regresión logística & 0,747 & 0,812 & +0,065 \\
+    \quad \textit{Random forest} & 0,879 & 0,877 & $-$0,002 \\
+    \quad XGBoost & 0,873 & 0,869 & $-$0,004 \\
+    \quad LightGBM & 0,876 & 0,877 & +0,001 \\
+    \arrayrulecolor{black!25}\cmidrule(lr){1-4}\arrayrulecolor{black}
+    Entre ciudades & & & \\
+    \quad Regresión logística & 0,703 & 0,704 & +0,002 \\
+    \quad \textit{Random forest} & 0,652 & 0,651 & $-$0,001 \\
+    \quad XGBoost & 0,446 & 0,429 & $-$0,018 \\
+    \quad LightGBM & 0,580 & 0,570 & $-$0,010 \\
+    \bottomrule
+  \end{tabularx}
+  \fuente{Elaboración propia.}
+\end{table}
+
+La \textbf{regresión logística} es la que más mejora, sobre todo dentro de cada ciudad (pasa de 0,754 a 0,831) y en la partición mezclada (de 0,747 a 0,812), mientras que entre ciudades casi no cambia.
+\\
+
+En cambio, en los \textbf{modelos de árboles} no se aprecian mejoras y, en algunos casos, empeoran un poco; la mayor caída es la de XGBoost entre ciudades (de 0,446 a 0,429). Una posible explicación es que los valores por defecto de los árboles ya funcionaban bien con estos datos, pero no es la única, y la subsección~\ref{subsec:dis-robustez-ajuste} la contrasta.
+\\
+
+También se ha comparado la diferencia por conjunto de variables (tabla~\ref{tab:defecto-ajustado-conjuntos}), con la media de todas las estrategias, perfiles y pliegues. La mejora de la regresión logística depende del conjunto, ya que es grande en el completo (+0,115), menor en calle y combinado (+0,062) y muy pequeña en el cartográfico y aéreo (+0,019). En los árboles las diferencias son pequeñas, y la mayor caída es la de XGBoost en el cartográfico y aéreo ($-$0,027).
+\\
+
+\begin{table}[htbp]
+  \centering
+  \caption{Diferencia de F1 macro en test entre los hiperparámetros ajustados y los de por defecto, por conjunto de variables.}
+  \label{tab:defecto-ajustado-conjuntos}
+  \small
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X >{\centering\arraybackslash}p{0.14\textwidth} >{\centering\arraybackslash}p{0.14\textwidth} >{\centering\arraybackslash}p{0.14\textwidth} >{\centering\arraybackslash}p{0.14\textwidth}}
+    \toprule
+    \cabeceratabla Conjunto de variables & Regresión logística & \textit{Random forest} & XGBoost & LightGBM \\
+    \midrule
+    Cartográfico y aéreo & +0,019 & $-$0,002 & $-$0,027 & $-$0,003 \\
+    Calle & +0,062 & $-$0,008 & $-$0,004 & $-$0,003 \\
+    Combinado & +0,062 & $-$0,008 & $-$0,004 & $-$0,003 \\
+    Completo & +0,115 & $-$0,010 & $-$0,004 & $-$0,002 \\
+    \bottomrule
+  \end{tabularx}
+  \fuente{Elaboración propia.}
+\end{table}
+
+Los hiperparámetros se han elegido con la F1 macro, por lo que es la métrica en la que el ajuste parte con ventaja. Por eso se han comparado también la exactitud balanceada y la kappa ponderada cuadrática.
+\\
+
+En la regresión logística con el conjunto completo, la mejora se mantiene en la kappa (+0,120) y es más modesta en la exactitud balanceada (+0,032). En calle y combinado, la mejora de F1 macro (+0,062) se reduce mucho en las otras dos métricas (+0,005 y +0,023), y en el cartográfico y aéreo la exactitud balanceada incluso baja ($-$0,017).
+\\
+
+En los modelos de árboles no hay mejoras apreciables en ninguna de las tres métricas. La mayor subida es de +0,004, y la mayor caída es la de XGBoost en el cartográfico y aéreo ($-$0,027 en F1 macro y $-$0,038 en kappa).
+\\
+
+\subsection{Robustez del ajuste en los modelos de árboles}
+\label{subsec:dis-robustez-ajuste}
+
+En los modelos de árboles el ajuste no ha mejorado los valores por defecto, y se han encontrado dos explicaciones posibles:
+\begin{itemize}
+  \item \textbf{La búsqueda se queda corta:} solo se han probado 30 candidatas al azar y puede que ninguna fuera buena.
+  \item \textbf{La validación interna es ruidosa:} la clase A tiene muy pocos tramos (24 en Albacete y 28 en Algeciras), así que cada pliegue interno tiene muy pocos y la F1 macro varía mucho de un pliegue a otro. La candidata ganadora puede ser la que mejor ha salido por casualidad.
+\end{itemize}
+
+Para comprobarlo se ha repetido el ajuste de hiperparámetros de los árboles de dos maneras, y se ha comparado con el ajuste principal (\textbf{A}):
+\begin{itemize}
+  \item \textbf{B:} cambia el \textit{seed}, y con él los pliegues internos y las candidatas. En caso de que el resultado cambie mucho, apuntaría a la validación ruidosa.
+  \item \textbf{C:} se prueban 100 candidatas en lugar de 30. En caso de que el test no mejore, probar pocas candidatas no era el problema.
+\end{itemize}
+
+La regresión logística no se repite, porque su rejilla siempre prueba las mismas combinaciones.
+\\
+
+La tabla~\ref{tab:robustez-ajuste} muestra la F1 macro media en test de cada variante, que es la media de todas las estrategias, conjuntos de variables, perfiles y pliegues.
+\\
+
+\begin{table}[htbp]
+  \centering
+  \caption{F1 macro media en test de los modelos de árboles con los valores por defecto y con las variantes de ajuste A, B y C.}
+  \label{tab:robustez-ajuste}
+  \small
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X >{\centering\arraybackslash}p{0.12\textwidth} >{\centering\arraybackslash}p{0.12\textwidth} >{\centering\arraybackslash}p{0.12\textwidth} >{\centering\arraybackslash}p{0.12\textwidth}}
+    \toprule
+    \cabeceratabla Modelo & Por defecto & A & B & C \\
+    \midrule
+    \textit{Random forest} & 0,860 & 0,853 & 0,856 & 0,848 \\
+    LightGBM & 0,850 & 0,847 & 0,850 & 0,843 \\
+    XGBoost & 0,831 & 0,822 & 0,826 & 0,825 \\
+    \bottomrule
+  \end{tabularx}
+  \fuente{Elaboración propia.}
+\end{table}
+
+El test solo se utiliza para comprobar si el ajuste ayuda, pero no para elegir hiperparámetros ni qué variante se usa. El ajuste principal (A) se mantiene fijado de antemano.
+\\
+
+Ninguna variante supera a los valores por defecto. Con 100 candidatas (C) el test no mejora, así que la búsqueda no parece quedarse corta con las 30 iniciales.
+\\
+
+Al cambiar solo el \textit{seed} (B), la diferencia absoluta media de F1 macro con A es de entre 0,008 y 0,010 en cada experimento. Es una diferencia similar a la que hay entre el ajuste A y los valores por defecto, que está entre 0,007 y 0,016.
+\\
+
+También se ha comparado la F1 macro interna de la candidata elegida con la del conjunto de test. Entre A y B la interna casi no cambia (en LightGBM es 0,897 en las dos), aunque la del test sí. Con 100 candidatas (C) la interna sube a 0,904 y la del test baja (en LightGBM, de 0,847 a 0,843).
+\\
+
+Esto es coherente con que la validación interna sea ruidosa, aunque no lo demuestra. En esta variante, buscar más ha dado candidatas que puntúan mejor en la validación interna, pero no en el test.
+\\
+
+Se ha decidido \textbf{no utilizar \gls{optuna}}, un optimizador de hiperparámetros. Haría una búsqueda guiada \parencite{radecic_2026} hacia las candidatas con mejor F1 macro interna, pero si esta es ruidosa, como se sospecha, podría no ser útil. No se ha probado que no ayude, pero con los datos obtenidos, no hay motivo para esperar una mejora significativa.
+\\
+
+\sintesisdecision{
+  \item \sintesisclave{Hiperparametrización} \gls{busqueda-rejilla} (\texttt{GridSearchCV}) para la regresión logística y \gls{busqueda-aleatoria} de 30 candidatas para los modelos de árboles, con validación cruzada interna de 3 pliegues agrupados por calle, para cada partición y conjunto de variables y solo con los datos de entrenamiento. En caso de empate (diferencia menor de 0,005 de F1 macro) se elige la candidata más simple.
+  \item \sintesisclave{Efecto} el ajuste mejora la regresión logística, sobre todo con el conjunto completo, pero apenas modifica el resultado de los modelos de árboles.
+  \item \sintesisclave{Árboles} se mantienen ajustados con el procedimiento principal (A) y no se usa un optimizador adicional, como se justifica en la subsección~\ref{subsec:dis-robustez-ajuste}.}
 
 \section{Implementación y reproducibilidad}
 \label{sec:dis-implementacion}
