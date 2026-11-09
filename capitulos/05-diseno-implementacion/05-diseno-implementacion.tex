@@ -398,7 +398,7 @@ No se ajustan \texttt{class\_\allowbreak weight=\allowbreak "balanced"}, que se 
 \subsection{Validación interna y desempate}
 \label{subsec:dis-validacion-interna}
 
-Se ha utilizado \gls{validacion-cruzada-anidada} \parencite{kudasova_nested_cv} para puntuar cada candidata, es decir, una validación interna dentro de cada partición de entrenamiento, en la que los tramos de entrenamiento de cada partición se dividen internamente en 3 pliegues utilizando \texttt{StratifiedGroupKFold}, igual que en la división de los datos (sección~\ref{sec:dis-division}). Se utilizan las mismas condiciones: una calle siempre queda en el mismo pliegue y el reparto de clases es similar.
+Se ha utilizado \gls{validacion-cruzada-anidada} \parencite{kudasova_nested_cv} para puntuar cada candidata, es decir, una validación interna dentro de cada partición de entrenamiento, en la que los tramos se dividen internamente en 3 pliegues utilizando \texttt{StratifiedGroupKFold}, igual que en la división de los datos (sección~\ref{sec:dis-division}). Se utilizan las mismas condiciones: una calle siempre queda en el mismo pliegue y el reparto de clases es similar.
 \\
 
 Cada candidata se entrena con 2 de los pliegues y se puntúa con el tercero, que no se ha utilizado en ese entrenamiento, usando la F1 macro. Esto se repite hasta que cada pliegue ha sido el de validación una vez (3 entrenamientos en total), y la nota de la candidata es la media de las F1 macro. Todas las candidatas de un modelo se prueban sobre los mismos pliegues.
@@ -518,7 +518,7 @@ En los modelos de árboles el ajuste no ha mejorado los valores por defecto, y s
 
 Para comprobarlo se ha repetido el ajuste de hiperparámetros de los árboles de dos maneras, y se ha comparado con el ajuste principal (\textbf{A}):
 \begin{itemize}
-  \item \textbf{B:} cambia la semilla, y con ella los pliegues internos y las candidatas. En caso de que el resultado cambie mucho, apuntaría a la validación ruidosa.
+  \item \textbf{B:} cambia el \textit{seed}, y con él los pliegues internos y las candidatas. En caso de que el resultado cambie mucho, apuntaría a la validación ruidosa.
   \item \textbf{C:} se prueban 100 candidatas en lugar de 30. En caso de que el test no mejore, probar pocas candidatas no era el problema.
 \end{itemize}
 
@@ -537,9 +537,9 @@ La tabla~\ref{tab:robustez-ajuste} muestra la F1 macro media en test de cada var
     \toprule
     \cabeceratabla Modelo & Por defecto & A & B & C \\
     \midrule
-    \textit{Random forest} & 0,8595 & 0,8526 & 0,8563 & 0,8478 \\
-    LightGBM & 0,8496 & 0,8470 & 0,8495 & 0,8430 \\
-    XGBoost & 0,8314 & 0,8219 & 0,8257 & 0,8248 \\
+    \textit{Random forest} & 0,860 & 0,853 & 0,856 & 0,848 \\
+    LightGBM & 0,850 & 0,847 & 0,850 & 0,843 \\
+    XGBoost & 0,831 & 0,822 & 0,826 & 0,825 \\
     \bottomrule
   \end{tabularx}
   \fuente{Elaboración propia.}
@@ -551,7 +551,7 @@ El test solo se utiliza para comprobar si el ajuste ayuda, pero no para elegir h
 Ninguna variante supera a los valores por defecto. Con 100 candidatas (C) el test no mejora, así que la búsqueda no parece quedarse corta con las 30 iniciales.
 \\
 
-Al cambiar solo la semilla (B), la diferencia absoluta media de F1 macro con A es de entre 0,008 y 0,010 en cada experimento. Es una diferencia similar a la que hay entre el ajuste A y los valores por defecto, que está entre 0,007 y 0,016.
+Al cambiar solo el \textit{seed} (B), la diferencia absoluta media de F1 macro con A es de entre 0,008 y 0,010 en cada experimento. Es una diferencia similar a la que hay entre el ajuste A y los valores por defecto, que está entre 0,007 y 0,016.
 \\
 
 También se ha comparado la F1 macro interna de la candidata elegida con la del conjunto de test. Entre A y B la interna casi no cambia (en LightGBM es 0,897 en las dos), aunque la del test sí. Con 100 candidatas (C) la interna sube a 0,904 y la del test baja (en LightGBM, de 0,847 a 0,843).
@@ -560,7 +560,7 @@ También se ha comparado la F1 macro interna de la candidata elegida con la del 
 Esto es coherente con que la validación interna sea ruidosa, aunque no lo demuestra. En esta variante, buscar más ha dado candidatas que puntúan mejor en la validación interna, pero no en el test.
 \\
 
-Se ha decidido \textbf{no utilizar Optuna}. Haría una búsqueda guiada hacia las candidatas con mejor F1 macro interna, pero si esta es ruidosa, como se sospecha, podría no ser útil. No se ha probado que no ayude, pero con los datos obtenidos, no parece que pudiera dar demasiados frutos.
+Se ha decidido \textbf{no utilizar \gls{optuna}}, un optimizador de hiperparámetros. Haría una búsqueda guiada \parencite{radecic_2026} hacia las candidatas con mejor F1 macro interna, pero si esta es ruidosa, como se sospecha, podría no ser útil. No se ha probado que no ayude, pero con los datos obtenidos, no hay motivo para esperar una mejora significativa.
 \\
 
 \sintesisdecision{
