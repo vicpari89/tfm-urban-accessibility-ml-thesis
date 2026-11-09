@@ -413,13 +413,13 @@ Se elige la candidata de mayor nota. Sin embargo, si otras candidatas están a m
   \item XGBoost: menor profundidad, después menos árboles y después mayor \texttt{min\_child\_weight}.
 \end{itemize}
 
-Se ha comprobado que se ha utilizado el criterio de desempate en algunos casos. Concretamente en 81 de los 204 ajustes (17 particiones, 3 conjuntos de variables y 4 modelos) la candidata elegida no es la de mayor nota.
+Se ha comprobado que se ha utilizado el criterio de desempate en algunos casos. Concretamente, en 81 de los 204 ajustes (17 particiones, 3 conjuntos de variables y 4 modelos), la candidata elegida no es la de mayor nota.
 \\
 
 Se ha realizado el ajuste para cada partición y cada conjunto de variables, con el perfil global como referencia, y los valores elegidos se reutilizan en los 4 perfiles.
 \\
 
-Los conjuntos de imágenes a pie de calle y combinado tienen las mismas dimensiones (sección~\ref{sec:dis-conjuntos-variables}), así que comparten el ajuste y salen 3 ajustes distintos por partición y modelo (17 particiones $\times$ 3 conjuntos $\times$ 4 modelos, 204 en total).
+Los conjuntos de calle y combinado tienen las mismas dimensiones (sección~\ref{sec:dis-conjuntos-variables}), así que comparten el ajuste y salen 3 ajustes distintos por partición y modelo (17 particiones $\times$ 3 conjuntos $\times$ 4 modelos, 204 en total).
 \\
 
 Hay que tener en cuenta que la nota de la validación interna es la mejor de entre muchas candidatas, por lo que es algo optimista. Por esa razón solo sirve para comparar candidatas de un mismo modelo y partición, y no para comparar unos modelos con otros, que se hace con el conjunto de test en la matriz de experimentos.
@@ -508,7 +508,7 @@ En los modelos de árboles no hay mejoras apreciables en ninguna de las tres mé
 \\
 
 \sintesisdecision{
-  \item \sintesisclave{Hiperparametrización} \gls{busqueda-rejilla} (\textit{GridSearch}) para la regresión logística y \gls{busqueda-aleatoria} de 30 candidatas para los modelos de árboles, con validación cruzada interna de 3 pliegues agrupados por calle, para cada partición y conjunto de variables y solo con los datos de entrenamiento. En caso de empate (diferencia menor de 0,005 de F1 macro) se elige la candidata más simple.
+  \item \sintesisclave{Hiperparametrización} \gls{busqueda-rejilla} (\texttt{GridSearchCV}) para la regresión logística y \gls{busqueda-aleatoria} de 30 candidatas para los modelos de árboles, con validación cruzada interna de 3 pliegues agrupados por calle, para cada partición y conjunto de variables y solo con los datos de entrenamiento. En caso de empate (diferencia menor de 0,005 de F1 macro) se elige la candidata más simple.
   \item \sintesisclave{Efecto} el ajuste mejora la regresión logística, sobre todo con el conjunto completo, pero apenas modifica el resultado de los modelos de árboles.}
 
 \section{Implementación y reproducibilidad}
