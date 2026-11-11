@@ -307,7 +307,7 @@ Una vez se terminan todos los experimentos con todas las combinaciones posibles,
 Se calcula, para cada estrategia de división, la media y la desviación típica de las métricas entre pliegues, para los casos de dentro de cada ciudad y mezclada entre ciudades. Sin embargo, no se realiza ese cálculo en la transferencia entre ciudades, puesto que no existen pliegues (subsección~\ref{subsec:dis-division}).
 \\
 
-Como el conjunto combinado tiene las mismas dimensiones que el de calle (subsección~\ref{subsec:dis-conjuntos-variables}), se obtienen resultados idénticos para los dos, aunque se han comprobado igualmente.
+Con el umbral del 50\,\%, el conjunto combinado tiene las mismas dimensiones que el de calle (subsección~\ref{subsec:dis-conjuntos-variables}), por lo que se obtienen resultados idénticos para los dos, aunque se han comprobado igualmente.
 \\
 
 Para poder realizar el contraste de hipótesis, cada hipótesis se evalúa por separado con cada uno de los cuatro modelos (regresión logística, \textit{random forest}, XGBoost balanceado y LightGBM), usando su F1 macro. El modelo \textit{dummy} es solo línea base.
@@ -322,7 +322,10 @@ La comparación se hace con el mismo modelo, la misma estrategia y el mismo perf
 Una conclusión se considera \textbf{robusta} si coincide en los cuatro modelos. Si cambia según el modelo, se indica que depende del modelo.
 \\
 
-No se elige ningún modelo según el resultado en el test. Como apoyo se ha comprobado que en la validación interna, que solo usa datos de entrenamiento, no señala un único modelo (\textit{notebook} 0.13).
+Los veredictos se basan en la matriz con los hiperparámetros ajustados. La matriz con los valores por defecto se utiliza como comprobación, y si un veredicto cambia entre las dos, se indica.
+\\
+
+No se elige ningún modelo según el resultado en el test. Como apoyo, se ha comprobado que la validación interna, que solo usa datos de entrenamiento, no señala un único modelo (\textit{notebook} 0.13).
 \\
 
 La regresión logística tiene la F1 macro interna más alta en 9 de las 17 particiones, LightGBM en 6, \textit{random forest} en 3 y XGBoost en ninguna. Las medias internas de los cuatro modelos están entre 0,964 y 0,980.
@@ -356,7 +359,7 @@ Las hipótesis H6 y H7 no se contrastan con la matriz de experimentos, por lo qu
 
 \sintesisdecision{
   \item \sintesisclave{Modelos de árboles} \textit{random forest}, XGBoost y LightGBM, con 300 árboles y con las clases balanceadas. Son modelos base, con los valores por defecto.
-  \item \sintesisclave{Matriz de experimentos} 17 particiones, 4 conjuntos de variables, 4 perfiles y 5 modelos (1360 experimentos), comparados con la F1 macro de cada uno de los cuatro modelos, y una conclusión es robusta si coincide en todos. No se elige ningún modelo según el test. Se usan primero los modelos base, y después los ajustados de la sección siguiente.}
+  \item \sintesisclave{Matriz de experimentos} 17 particiones, 4 conjuntos de variables, 4 perfiles y 5 modelos (1360 experimentos), comparados con la F1 macro de cada uno de los cuatro modelos, y una conclusión es robusta si coincide en todos. No se elige ningún modelo según el test. Los veredictos se basan en la matriz con los hiperparámetros ajustados, y la de los valores por defecto sirve de comprobación.}
 
 \subsection{Sensibilidad al umbral de viabilidad}
 \label{subsec:dis-sensibilidad}
@@ -643,33 +646,34 @@ La estructura del repositorio se muestra en la figura~\ref{fig:estructura-reposi
 \begin{figure}[htbp]
 \begin{lstlisting}[style=tfmarbol]
 urban_accessibility_ml/
-|-- config.py          @\descarbol{Constantes: seed, dimensiones, perfiles y umbrales}@
-|-- data/              @\descarbol{Flujo de los datos (ingesta, limpieza y}@
-                       @\descarbol{unificación)}@
+|-- config.py              @\descarbol{Constantes: seed, dimensiones, perfiles y umbrales}@
+|-- data/                  @\descarbol{Flujo de los datos (ingesta, limpieza y}@
+                           @\descarbol{unificación)}@
 |-- preprocessing/
-|   |-- features.py    @\descarbol{Conjuntos de variables}@
-|   `-- split.py       @\descarbol{Particiones de entrenamiento y test}@
+|   |-- features.py        @\descarbol{Conjuntos de variables}@
+|   `-- split.py           @\descarbol{Particiones de entrenamiento y test}@
 |-- modeling/
-|   |-- models/        @\descarbol{Un módulo por modelo (dummy, regresión logística,}@
-                       @\descarbol{random forest, XGBoost con y sin pesos y LightGBM),}@
-                       @\descarbol{con las funciones que los construyen}@
-|   |-- tuning/        @\descarbol{Ajuste de hiperparámetros (búsqueda,}@
-                       @\descarbol{ejecución, resultados y variantes)}@
-|   |-- train.py       @\descarbol{Entrenamiento y predicción de un experimento}@
-|   |-- experiments.py @\descarbol{Ejecución de todos los experimentos y guardado}@
-                       @\descarbol{de los resultados}@
+|   |-- models/            @\descarbol{Un módulo por modelo (dummy, regresión logística,}@
+                           @\descarbol{random forest, XGBoost con y sin pesos y LightGBM),}@
+                           @\descarbol{con las funciones que los construyen}@
+|   |-- tuning/            @\descarbol{Ajuste de hiperparámetros (búsqueda,}@
+                           @\descarbol{ejecución, resultados y variantes)}@
+|   |-- train.py           @\descarbol{Entrenamiento y predicción de un experimento}@
+|   |-- experiments.py     @\descarbol{Ejecución de todos los experimentos y guardado}@
+                           @\descarbol{de los resultados}@
+|   |-- experiments_run.py @\descarbol{Orden de make experiments}@
 |   |-- sensitivity_run.py @\descarbol{Matriz para cada umbral de viabilidad}@
-|   `-- evaluate.py    @\descarbol{Métricas utilizadas}@
-`-- plotting/          @\descarbol{Estilos y código de los gráficos}@
-data/                  @\descarbol{Ficheros de datos, sin versionar (raw/, interim/ y}@
-                       @\descarbol{processed/)}@
-docs/                  @\descarbol{Documentación del proyecto}@
-notebooks/             @\descarbol{Del análisis exploratorio a la matriz de}@
-                       @\descarbol{experimentos}@
-tests/                 @\descarbol{Misma estructura que el código}@
-                       @\descarbol{(data, preprocessing, modeling)}@
-reports/               @\descarbol{Resultados y gráficos}@
-scripts/               @\descarbol{Descarga de datos desde Zenodo}@
+|   `-- evaluate.py        @\descarbol{Métricas utilizadas}@
+`-- plotting/              @\descarbol{Estilos y código de los gráficos}@
+data/                      @\descarbol{Ficheros de datos, sin versionar (raw/, interim/ y}@
+                           @\descarbol{processed/)}@
+docs/                      @\descarbol{Documentación del proyecto}@
+notebooks/                 @\descarbol{Del análisis exploratorio a la matriz de}@
+                           @\descarbol{experimentos}@
+tests/                     @\descarbol{Misma estructura que el código}@
+                           @\descarbol{(data, preprocessing, modeling)}@
+reports/                   @\descarbol{Resultados y gráficos}@
+scripts/                   @\descarbol{Descarga de datos desde Zenodo}@
 \end{lstlisting}
 \caption{Estructura del repositorio.}\label{fig:estructura-repositorio}
 \fuente{Elaboración propia.}
