@@ -322,13 +322,13 @@ La comparación se hace con el mismo modelo, la misma estrategia y el mismo perf
 Una conclusión se considera \textbf{robusta} si coincide en los cuatro modelos. Si cambia según el modelo, se indica que depende del modelo.
 \\
 
-Las conclusiones se basan en la matriz con los hiperparámetros ajustados. La matriz con los valores por defecto se utiliza como comprobación, y si una conclusión cambia entre las dos, se indica.
+Las conclusiones se basan en la matriz con los hiperparámetros ajustados (sección~\ref{sec:dis-hiperparametrizacion}). La matriz con los valores por defecto se utiliza como comprobación, y si una conclusión cambia entre las dos, se indica.
 \\
 
 No se elige ningún modelo según el resultado en el test. Como apoyo, se ha comprobado que la validación interna, que solo usa datos de entrenamiento, no señala un único modelo (\textit{notebook} 0.13).
 \\
 
-Con el conjunto completo y el ajuste principal, la regresión logística tiene la F1 macro interna más alta en 9 de las 17 particiones, LightGBM en 6, \textit{random forest} en 3 y XGBoost en ninguna. Las medias internas de los cuatro modelos están entre 0,964 y 0,980.
+Con el conjunto completo y el ajuste de hiperparámetros (subsección~\ref{subsec:dis-validacion-interna}), la regresión logística tiene la F1 macro interna más alta en 9 de las 17 particiones, LightGBM en 6, \textit{random forest} en 3 y XGBoost en ninguna. Las medias internas de los cuatro modelos están entre 0,964 y 0,980.
 \\
 
 Las hipótesis H6 y H7 no se contrastan con la matriz de experimentos, por lo que no aparecen en la tabla~\ref{tab:comparaciones-hipotesis}.
@@ -359,7 +359,7 @@ Las hipótesis H6 y H7 no se contrastan con la matriz de experimentos, por lo qu
 
 \sintesisdecision{
   \item \sintesisclave{Modelos de árboles} \textit{random forest}, XGBoost y LightGBM, con 300 árboles y con las clases balanceadas. Son modelos base, con los valores por defecto.
-  \item \sintesisclave{Matriz de experimentos} 17 particiones, 4 conjuntos de variables, 4 perfiles y 5 modelos (1360 experimentos), comparados con la F1 macro de cada uno de los cuatro modelos, y una conclusión es robusta si coincide en todos. No se elige ningún modelo según el test. Las conclusiones se basan en la matriz con los hiperparámetros ajustados, y la de los valores por defecto sirve de comprobación.}
+  \item \sintesisclave{Matriz de experimentos} 17 particiones, 4 conjuntos de variables, 4 perfiles y 5 modelos (1360 experimentos), comparados con la F1 macro de cada uno de los cuatro modelos, y una conclusión es robusta si coincide en todos. No se elige ningún modelo según el test. Las conclusiones se basan en la matriz con los hiperparámetros ajustados (sección~\ref{sec:dis-hiperparametrizacion}), y la de los valores por defecto sirve de comprobación.}
 
 \subsection{Sensibilidad al umbral de viabilidad}
 \label{subsec:dis-sensibilidad}
