@@ -310,7 +310,7 @@ Se calcula, para cada estrategia de división, la media y la desviación típica
 Con el umbral del 50\,\%, el conjunto combinado tiene las mismas dimensiones que el de calle (subsección~\ref{subsec:dis-conjuntos-variables}), por lo que se obtienen resultados idénticos para los dos, aunque se han comprobado igualmente.
 \\
 
-Para poder realizar el contraste de hipótesis, cada hipótesis se evalúa por separado con cada uno de los cuatro modelos (regresión logística, \textit{random forest}, XGBoost balanceado y LightGBM), usando su F1 macro. El modelo \textit{dummy} es solo línea base.
+Para poder realizar el contraste de hipótesis, cada hipótesis se evalúa por separado con cada uno de los cuatro modelos (regresión logística, \textit{random forest}, XGBoost y LightGBM), usando su F1 macro. El modelo \textit{dummy} es solo línea base.
 \\
 
 Siguiendo los criterios de refutación de la subsección~\ref{subsec:ml-conclusiones} (hipótesis en la tabla~\ref{tab:hipotesis}), se refutan las hipótesis cuando el valor de F1 macro es inferior al \textbf{80\,\%} del modelo de comparación, es decir, cuando el conjunto es claramente inferior.
@@ -322,13 +322,13 @@ La comparación se hace con el mismo modelo, la misma estrategia y el mismo perf
 Una conclusión se considera \textbf{robusta} si coincide en los cuatro modelos. Si cambia según el modelo, se indica que depende del modelo.
 \\
 
-Los veredictos se basan en la matriz con los hiperparámetros ajustados. La matriz con los valores por defecto se utiliza como comprobación, y si un veredicto cambia entre las dos, se indica.
+Las conclusiones se basan en la matriz con los hiperparámetros ajustados. La matriz con los valores por defecto se utiliza como comprobación, y si una conclusión cambia entre las dos, se indica.
 \\
 
 No se elige ningún modelo según el resultado en el test. Como apoyo, se ha comprobado que la validación interna, que solo usa datos de entrenamiento, no señala un único modelo (\textit{notebook} 0.13).
 \\
 
-La regresión logística tiene la F1 macro interna más alta en 9 de las 17 particiones, LightGBM en 6, \textit{random forest} en 3 y XGBoost en ninguna. Las medias internas de los cuatro modelos están entre 0,964 y 0,980.
+Con el conjunto completo y el ajuste principal, la regresión logística tiene la F1 macro interna más alta en 9 de las 17 particiones, LightGBM en 6, \textit{random forest} en 3 y XGBoost en ninguna. Las medias internas de los cuatro modelos están entre 0,964 y 0,980.
 \\
 
 Las hipótesis H6 y H7 no se contrastan con la matriz de experimentos, por lo que no aparecen en la tabla~\ref{tab:comparaciones-hipotesis}.
@@ -359,15 +359,15 @@ Las hipótesis H6 y H7 no se contrastan con la matriz de experimentos, por lo qu
 
 \sintesisdecision{
   \item \sintesisclave{Modelos de árboles} \textit{random forest}, XGBoost y LightGBM, con 300 árboles y con las clases balanceadas. Son modelos base, con los valores por defecto.
-  \item \sintesisclave{Matriz de experimentos} 17 particiones, 4 conjuntos de variables, 4 perfiles y 5 modelos (1360 experimentos), comparados con la F1 macro de cada uno de los cuatro modelos, y una conclusión es robusta si coincide en todos. No se elige ningún modelo según el test. Los veredictos se basan en la matriz con los hiperparámetros ajustados, y la de los valores por defecto sirve de comprobación.}
+  \item \sintesisclave{Matriz de experimentos} 17 particiones, 4 conjuntos de variables, 4 perfiles y 5 modelos (1360 experimentos), comparados con la F1 macro de cada uno de los cuatro modelos, y una conclusión es robusta si coincide en todos. No se elige ningún modelo según el test. Las conclusiones se basan en la matriz con los hiperparámetros ajustados, y la de los valores por defecto sirve de comprobación.}
 
 \subsection{Sensibilidad al umbral de viabilidad}
 \label{subsec:dis-sensibilidad}
 
-Como el umbral del 50\,\% es subjetivo (subsección~\ref{subsec:dis-conjuntos-variables}), se ha repetido la matriz de experimentos con otros cuatro umbrales: 40, 60, 75 y 90\,\%. El conjunto completo no depende del umbral, así que no se recalcula.
+Como el umbral del 50\,\% es subjetivo (subsección~\ref{subsec:dis-conjuntos-variables}), se ha repetido la matriz de experimentos con otros 4 umbrales (40, 60, 75 y 90\,\%). El conjunto completo no depende del umbral, así que no se recalcula.
 \\
 
-Varios umbrales tienen las mismas dimensiones en algún conjunto (por ejemplo, el cartográfico y aéreo es igual con el 50 y el 60\,\%), por lo que cada conjunto distinto se calcula una sola vez. En total hay 8 conjuntos distintos, además del completo.
+Varios umbrales tienen las mismas dimensiones en algún conjunto (por ejemplo, el cartográfico y aéreo es igual con el 50 y el 60\,\%), por lo que cada conjunto distinto se calcula una sola vez. En total hay 8 conjuntos de variables distintos, además del completo.
 \\
 
 Cada conjunto utiliza su propio ajuste de hiperparámetros (sección~\ref{sec:dis-hiperparametrizacion}) si lo tiene, es decir, si sus dimensiones coinciden con las de un conjunto ajustado antes. Si no, utiliza el del conjunto completo. Los resultados se presentan en el capítulo de resultados.
@@ -661,7 +661,7 @@ urban_accessibility_ml/
 |   |-- train.py           @\descarbol{Entrenamiento y predicción de un experimento}@
 |   |-- experiments.py     @\descarbol{Ejecución de todos los experimentos y guardado}@
                            @\descarbol{de los resultados}@
-|   |-- experiments_run.py @\descarbol{Orden de make experiments}@
+|   |-- experiments_run.py @\descarbol{Ejecución de la matriz con make experiments}@
 |   |-- sensitivity_run.py @\descarbol{Matriz para cada umbral de viabilidad}@
 |   `-- evaluate.py        @\descarbol{Métricas utilizadas}@
 `-- plotting/              @\descarbol{Estilos y código de los gráficos}@
