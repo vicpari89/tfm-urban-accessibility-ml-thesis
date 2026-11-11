@@ -97,7 +97,10 @@ Además, el total está más correlacionado con la clase que cualquier dimensió
 Se han organizado los \textbf{conjuntos de variables} según el origen del que se podrían obtener las dimensiones. Una dimensión se incluye en un conjunto si su viabilidad estimada para esa fuente (tabla~\ref{tab:viabilidad}) es de al menos el \textbf{50\,\%}.
 \\
 
-Se ha elegido este umbral porque, si al menos la mitad de las características de una dimensión se pueden obtener de esa fuente, se considera suficiente para evaluarla. Un umbral más exigente, como el 75\,\%, dejaría vacío el conjunto cartográfico y aéreo. Es un umbral subjetivo, así que se utiliza como criterio exploratorio y se prueba con otros en el capítulo de resultados.
+Se ha elegido este umbral porque, si al menos la mitad de las características de una dimensión se pueden obtener de esa fuente, se considera suficiente para evaluarla. Un umbral más exigente, como el 75\,\%, dejaría vacío el conjunto cartográfico y aéreo. Es un umbral subjetivo, ya que la viabilidad se ha estimado según criterios del autor.
+\\
+
+Además, poder observar parte de una dimensión no garantiza obtener su puntuación completa, ya que una fuente puede recoger solo algunas de sus características (la pendiente, por ejemplo). Por ello se utiliza como criterio exploratorio, y se prueba con otros umbrales en la subsección~\ref{subsec:dis-sensibilidad}, con los resultados en el capítulo de resultados.
 \\
 
 Se han definido cuatro conjuntos diferentes: \textbf{cartográfico y aéreo}, \textbf{calle}, \textbf{combinado} y \textbf{completo}. El cartográfico y aéreo reúne las dimensiones obtenibles de cartografía pública o de imágenes aéreas; el de calle, las que se pueden obtener a partir de imágenes a pie de calle; el combinado, las que se obtienen de cualquiera de las tres fuentes de imagen o cartografía; y el completo incluye todas las dimensiones. La tabla~\ref{tab:conjuntos-variables} indica qué dimensiones pertenecen a cada conjunto.
@@ -307,10 +310,22 @@ Se calcula, para cada estrategia de división, la media y la desviación típica
 Como el conjunto combinado tiene las mismas dimensiones que el de calle (subsección~\ref{subsec:dis-conjuntos-variables}), se obtienen resultados idénticos para los dos, aunque se han comprobado igualmente.
 \\
 
-Para poder realizar el contraste de hipótesis, se utiliza la F1 macro de un único modelo, \textit{random forest}, fijado de antemano y que es el mismo para todos los conjuntos. Siguiendo los criterios de refutación de la subsección~\ref{subsec:ml-conclusiones} (hipótesis en la tabla~\ref{tab:hipotesis}), se refutan las hipótesis cuando el valor de F1 macro es inferior al \textbf{80\,\%} del modelo de comparación, que en H1, H2 y H5 es el del conjunto de datos completo y en H3 y H4 el indicado en la tabla~\ref{tab:comparaciones-hipotesis}.
+Para poder realizar el contraste de hipótesis, cada hipótesis se evalúa por separado con cada uno de los cuatro modelos (regresión logística, \textit{random forest}, XGBoost balanceado y LightGBM), usando su F1 macro. El modelo \textit{dummy} es solo línea base.
 \\
 
-No se elige el mejor modelo de cada conjunto a partir de los datos de test, porque ese resultado puede estar inflado por el azar, puesto que hay pocos tramos de las clases minoritarias. Por eso se fija el modelo de antemano.
+Siguiendo los criterios de refutación de la subsección~\ref{subsec:ml-conclusiones} (hipótesis en la tabla~\ref{tab:hipotesis}), se refutan las hipótesis cuando el valor de F1 macro es inferior al \textbf{80\,\%} del modelo de comparación, es decir, cuando el conjunto es claramente inferior.
+\\
+
+La comparación se hace con el mismo modelo, la misma estrategia y el mismo perfil. El modelo de comparación en H1, H2 y H5 es el del conjunto de datos completo y en H3 y H4 el indicado en la tabla~\ref{tab:comparaciones-hipotesis}.
+\\
+
+Una conclusión se considera \textbf{robusta} si coincide en los cuatro modelos. Si cambia según el modelo, se indica que depende del modelo.
+\\
+
+No se elige ningún modelo según el resultado en el test. Como apoyo se ha comprobado que en la validación interna, que solo usa datos de entrenamiento, no señala un único modelo (\textit{notebook} 0.13).
+\\
+
+La regresión logística tiene la F1 macro interna más alta en 9 de las 17 particiones, LightGBM en 6, \textit{random forest} en 3 y XGBoost en ninguna. Las medias internas de los cuatro modelos están entre 0,964 y 0,980.
 \\
 
 Las hipótesis H6 y H7 no se contrastan con la matriz de experimentos, por lo que no aparecen en la tabla~\ref{tab:comparaciones-hipotesis}.
@@ -329,7 +344,7 @@ Las hipótesis H6 y H7 no se contrastan con la matriz de experimentos, por lo qu
     \arrayrulecolor{black!25}\cmidrule(lr){1-3}\arrayrulecolor{black}
     H2 & Conjunto de calle. & Conjunto completo. \\
     \arrayrulecolor{black!25}\cmidrule(lr){1-3}\arrayrulecolor{black}
-    H3 & Conjunto combinado. & El mejor de los conjuntos cartográfico y aéreo, y de calle. No se puede evaluar la hipótesis, por ser igual que el de calle. \\
+    H3 & Conjunto combinado. & El mejor de los conjuntos cartográfico y aéreo, y de calle. No se puede evaluar con el umbral del 50\,\%; sí con el 40\,\% y el 60\,\%. \\
     \arrayrulecolor{black!25}\cmidrule(lr){1-3}\arrayrulecolor{black}
     H4 & Entrenamiento en una ciudad y test en la otra. & Validación dentro de la ciudad de destino. \\
     \arrayrulecolor{black!25}\cmidrule(lr){1-3}\arrayrulecolor{black}
@@ -341,7 +356,19 @@ Las hipótesis H6 y H7 no se contrastan con la matriz de experimentos, por lo qu
 
 \sintesisdecision{
   \item \sintesisclave{Modelos de árboles} \textit{random forest}, XGBoost y LightGBM, con 300 árboles y con las clases balanceadas. Son modelos base, con los valores por defecto.
-  \item \sintesisclave{Matriz de experimentos} 17 particiones, 4 conjuntos de variables, 4 perfiles y 5 modelos (1360 experimentos), comparados con la F1 macro de \textit{random forest}, un modelo fijado de antemano para no elegirlo según el test. Se usan primero los modelos base, y después los ajustados de la sección siguiente.}
+  \item \sintesisclave{Matriz de experimentos} 17 particiones, 4 conjuntos de variables, 4 perfiles y 5 modelos (1360 experimentos), comparados con la F1 macro de cada uno de los cuatro modelos, y una conclusión es robusta si coincide en todos. No se elige ningún modelo según el test. Se usan primero los modelos base, y después los ajustados de la sección siguiente.}
+
+\subsection{Sensibilidad al umbral de viabilidad}
+\label{subsec:dis-sensibilidad}
+
+Como el umbral del 50\,\% es subjetivo (subsección~\ref{subsec:dis-conjuntos-variables}), se ha repetido la matriz de experimentos con otros cuatro umbrales: 40, 60, 75 y 90\,\%. El conjunto completo no depende del umbral, así que no se recalcula.
+\\
+
+Varios umbrales tienen las mismas dimensiones en algún conjunto (por ejemplo, el cartográfico y aéreo es igual con el 50 y el 60\,\%), por lo que cada conjunto distinto se calcula una sola vez. En total hay 8 conjuntos distintos, además del completo.
+\\
+
+Cada conjunto utiliza su propio ajuste de hiperparámetros (sección~\ref{sec:dis-hiperparametrizacion}) si lo tiene, es decir, si sus dimensiones coinciden con las de un conjunto ajustado antes. Si no, utiliza el del conjunto completo. Los resultados se presentan en el capítulo de resultados.
+\\
 
 \section{Hiperparametrización}
 \label{sec:dis-hiperparametrizacion}
@@ -626,9 +653,12 @@ urban_accessibility_ml/
 |   |-- models/        @\descarbol{Un módulo por modelo (dummy, regresión logística,}@
                        @\descarbol{random forest, XGBoost con y sin pesos y LightGBM),}@
                        @\descarbol{con las funciones que los construyen}@
+|   |-- tuning/        @\descarbol{Ajuste de hiperparámetros (búsqueda,}@
+                       @\descarbol{ejecución, resultados y variantes)}@
 |   |-- train.py       @\descarbol{Entrenamiento y predicción de un experimento}@
 |   |-- experiments.py @\descarbol{Ejecución de todos los experimentos y guardado}@
                        @\descarbol{de los resultados}@
+|   |-- sensitivity_run.py @\descarbol{Matriz para cada umbral de viabilidad}@
 |   `-- evaluate.py    @\descarbol{Métricas utilizadas}@
 `-- plotting/          @\descarbol{Estilos y código de los gráficos}@
 data/                  @\descarbol{Ficheros de datos, sin versionar (raw/, interim/ y}@
@@ -652,6 +682,9 @@ Las órdenes principales se lanzan con \texttt{make}:
 
 \begin{itemize}
   \item \texttt{make data}: construye el conjunto unificado.
+  \item \texttt{make tune}: ajusta los hiperparámetros en las 17 particiones y los conjuntos de variables.
+  \item \texttt{make experiments}: ejecuta la matriz de experimentos con los hiperparámetros por defecto y con los ajustados.
+  \item \texttt{make sensitivity}: ejecuta la matriz con los conjuntos de cada umbral de viabilidad.
   \item \texttt{make test}: ejecuta las pruebas.
   \item \texttt{make lint}: comprueba el formato y el estilo.
   \item \texttt{make docs}: construye la documentación.
